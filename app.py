@@ -90,11 +90,9 @@ data_input = html.Div(
 )
 
 tabs = html.Div([
-
     dcc.Tabs(id="main-tabs", value='tab-overview', children=[
         dcc.Tab(label='Overview', value='tab-overview'),
         dcc.Tab(label='Data', value='tab-data-input'),
-        dcc.Tab(label='Dataframe', value='tab-dataframe'),
     ]),
     html.Div(id='tabs-content', style={"border": "2px black solid"})
 ])
@@ -112,6 +110,22 @@ summary_pivot = html.Div(
                    },
             children=[
                 html.Div(html.H5("Summary Pivot Table", style={"text-align": "center"})),
+            ]
+        )])
+
+confusion_matrix = html.Div(
+    className="row",
+    children=[
+        html.Div(
+            className="row app-body",
+            style={"border": "2px black solid",
+                   "height": "200px",
+                   "width": "800px",
+                   "margin-top": "5px",
+                   "margin-bottom": "5px",
+                   },
+            children=[
+                html.Div(html.H5("Confusion Matrix", style={"text-align": "center"})),
             ]
         )])
 
@@ -235,14 +249,54 @@ app.layout = html.Div([
         html.Div(header),
         tabs,
         data_input,
+        # Dataframe
+        html.Details([
+            html.Summary('Dataframe',
+                         style={
+                             "text-align": "center"
+                         }),
+            html.Div(dataframe_print)
+        ]),
         # Summary Pivot
-        summary_pivot,
+        html.Details([
+            html.Summary('Summary Pivot Table',
+                         style={
+                             "text-align": "center"
+                         }),
+            html.Div(summary_pivot)
+        ]),
+        # Confusion Matrix
+        html.Details([
+            html.Summary('Confusion Matrix',
+                         style={
+                             "text-align": "center"
+                         }),
+            html.Div(confusion_matrix)
+        ]),
         # Violin Plots
-        violin_plots,
-        sdm_curves,
-        det_curves,
-        html.P("This will go under the Dataframe tab", style={"text-align": "center"}),
-        dataframe_print],
+        html.Details([
+            html.Summary('Violin Plots',
+                         style={
+                             "text-align": "center"
+                         }),
+            html.Div(violin_plots)
+        ]),
+        # SDM Curves
+        html.Details([
+            html.Summary('SDM Curves',
+                         style={
+                             "text-align": "center"
+                         }),
+            html.Div(sdm_curves)
+        ]),
+        # DET Curves
+        html.Details([
+            html.Summary('DET Curves',
+                         style={
+                             "text-align": "center"
+                         }),
+            html.Div(det_curves)
+        ])],
         style={"margin": "5px 5px 5px 5px"}
     )
 ])
@@ -276,7 +330,7 @@ def update_output(contents, error):
             'overflowY': 'scroll',
             'margin-left': 'auto',
             'margin-right': 'auto',
-            'align': 'center'
+            'padding': '4px'
         },
     )
     return data_table
@@ -289,11 +343,6 @@ def render_content(tab):
         return html.Div([
             html.H3('Data Input'),
             html.P('Upload data context error when you put it in a tab....')
-        ])
-    elif tab == 'tab-dataframe':
-        return html.Div([
-            html.H3('Display Dataframe'),
-            html.P('Show dataframe of chosen data (temporarily included at bottom of page)')
         ])
     elif tab == 'tab-overview':
         return html.Div([
