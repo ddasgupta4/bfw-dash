@@ -1,20 +1,16 @@
-import flask
-import dash
-import dash_bootstrap_components as dbc
-import dash_html_components as html
-import plotly.graph_objs as gobs
 import base64
 import io
+
 import dash
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
-import plotly.graph_objs as go
+import flask
 import pandas as pd
-import pathlib
-
 from dash.dependencies import Input, Output, State
-from scipy import stats
+
+# @author Dylan Dasgupta
 
 external_stylesheets = ['https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css']
 
