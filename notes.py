@@ -1,20 +1,15 @@
-import flask
-import dash
-import dash_bootstrap_components as dbc
-import dash_html_components as html
-import plotly.graph_objs as gobs
 import base64
 import io
+
 import dash
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
-import plotly.graph_objs as go
+import flask
 import pandas as pd
-import pathlib
-
+import visualizations as viz
 from dash.dependencies import Input, Output, State
-from scipy import stats
 
 external_stylesheets = ['https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css']
 
@@ -51,7 +46,7 @@ header = dbc.NavbarSimple(
             label="More",
         ),
     ],
-    brand="BFW Dashboard",
+    brand="'Fairness' Evaluation for Facial Recognition Technology",
     brand_href="#",
     color="primary",
     dark=True
@@ -94,7 +89,6 @@ data_input = html.Div(
 )
 
 tabs = html.Div([
-
     dcc.Tabs(id="main-tabs", value='tab-overview', children=[
         dcc.Tab(label='Overview', value='tab-overview'),
         dcc.Tab(label='Data', value='tab-data-input'),
@@ -254,6 +248,7 @@ app.layout = html.Div([
         html.Div(header),
         tabs,
         data_input,
+        # Dataframe
         html.Details([
             html.Summary('Dataframe',
                          style={
@@ -269,6 +264,7 @@ app.layout = html.Div([
                          }),
             html.Div(summary_pivot)
         ]),
+        # Confusion Matrix
         html.Details([
             html.Summary('Confusion Matrix',
                          style={
@@ -284,6 +280,7 @@ app.layout = html.Div([
                          }),
             html.Div(violin_plots)
         ]),
+        # SDM Curves
         html.Details([
             html.Summary('SDM Curves',
                          style={
@@ -291,6 +288,7 @@ app.layout = html.Div([
                          }),
             html.Div(sdm_curves)
         ]),
+        # DET Curves
         html.Details([
             html.Summary('DET Curves',
                          style={
@@ -322,6 +320,12 @@ def update_output(contents, error):
 
     df = study_data.head()
 
+    # Add helper function here to validate data
+    # If validated, reformat and add rows (from Alice's stuff)
+    df = viz.relabel(df)
+
+    violin = viz.violin_plot(df)
+
     data_table = dash_table.DataTable(
         id='table',
         columns=[{"name": i, "id": i} for i in df.columns],
@@ -331,7 +335,7 @@ def update_output(contents, error):
             'overflowY': 'scroll',
             'margin-left': 'auto',
             'margin-right': 'auto',
-            'align': 'center'
+            'padding': '4px'
         },
     )
     return data_table
@@ -353,4 +357,4 @@ def render_content(tab):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, port=4444)
