@@ -1,15 +1,9 @@
-import base64
-import io
-
 import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
-import dash_table
 import flask
-import pandas as pd
-import visualizations as viz
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 
 external_stylesheets = ['https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css']
 
@@ -52,48 +46,29 @@ header = dbc.NavbarSimple(
     dark=True
 )
 
-data_input = html.Div(
-    className="row card",
-    children=[
-        # User Controls
-        html.Div(
-            className="four columns card",
-            style={"border": "2px black solid"},
-            children=[
-                # data_select,
-                html.Div(
-                    children=[
-                        html.Div(
-                            className="padding-top-bot",
-                            children=[
-                                html.H6("Select Data (This will go under the data tab)"),
-                                dcc.Upload(
-                                    id="upload-data",
-                                    className="upload",
-                                    children=html.Div(
-                                        children=[
-                                            html.P("Drag and Drop or "),
-                                            html.A("Select Files"),
-                                        ]
-                                    ),
-                                    accept=".csv",
-                                ),
-                            ],
-                        ),
-                    ],
-                )
-            ],
-        ),
-        dcc.Store(id="error", storage_type="memory"),
-    ],
-)
-
 tabs = html.Div([
     dcc.Tabs(id="main-tabs", value='tab-overview', children=[
         dcc.Tab(label='Overview', value='tab-overview'),
-        dcc.Tab(label='Data', value='tab-data-input'),
     ]),
-    html.Div(id='tabs-content', style={"border": "2px black solid"})
+    html.Div(id='tabs-content')
+])
+
+data_tabs = html.Div([
+    dcc.Tabs(id="data-tabs", value='tab-data', children=[
+        dcc.Tab(label='Data Input', value='tab-input'),
+        dcc.Tab(label='Data Table', value='tab-frame'),
+        dcc.Tab(label='Data Summary', value='tab-summary'),
+    ]),
+    html.Div(id='tabs-content-data')
+])
+
+plot_tabs = html.Div([
+    dcc.Tabs(id="plot-tabs", value='tab-graphs', children=[
+        dcc.Tab(label='Violin Plots', value='tab-violin'),
+        dcc.Tab(label='Box Plots', value='tab-box'),
+        dcc.Tab(label='SDM Curves', value='tab-sdm'),
+    ]),
+    html.Div(id='tabs-content-plots')
 ])
 
 summary_pivot = html.Div(
@@ -118,10 +93,11 @@ confusion_matrix = html.Div(
         html.Div(
             className="row app-body",
             style={"border": "2px black solid",
-                   "height": "200px",
-                   "width": "800px",
+                   "height": "500px",
+                   "width": "500px",
                    "margin-top": "5px",
                    "margin-bottom": "5px",
+                   "margin-left": "15px",
                    },
             children=[
                 html.Div(html.H5("Confusion Matrix", style={"text-align": "center"})),
@@ -221,17 +197,6 @@ det_curves = html.Div(
     ]
 )
 
-dataframe_print = html.Div(
-    className="row app-body",
-    style={"border": "2px black solid"},
-    children=[
-        html.Div(
-            className="row chart",
-            id='figure'
-        )
-    ]
-)
-
 # INTERACTION
 # ===========
 
@@ -246,56 +211,68 @@ dataframe_print = html.Div(
 app.layout = html.Div([
     html.Div(children=[
         html.Div(header),
-        tabs,
-        data_input,
-        # Dataframe
-        html.Details([
-            html.Summary('Dataframe',
-                         style={
-                             "text-align": "center"
-                         }),
-            html.Div(dataframe_print)
-        ]),
-        # Summary Pivot
-        html.Details([
-            html.Summary('Summary Pivot Table',
-                         style={
-                             "text-align": "center"
-                         }),
-            html.Div(summary_pivot)
-        ]),
-        # Confusion Matrix
-        html.Details([
-            html.Summary('Confusion Matrix',
-                         style={
-                             "text-align": "center"
-                         }),
-            html.Div(confusion_matrix)
-        ]),
-        # Violin Plots
-        html.Details([
-            html.Summary('Violin Plots',
-                         style={
-                             "text-align": "center"
-                         }),
-            html.Div(violin_plots)
+        html.Div([
+            html.Div(
+                className="row",
+                children=[
+                    # Tabs on left, confusion matrix underneath
+                    html.Div(
+                        className="six columns",
+                        children=[
+                            html.Div(
+                                children=[html.Div(
+                                    tabs,
+                                    style={"border": "2px black solid",
+                                           "height": "500px",
+                                           "width": "350px",
+                                           "margin-top": "5px",
+                                           "margin-bottom": "5px",
+                                           "margin-left": "15px"
+                                           }
+                                ),
+                                ]
+                            )
+                        ]
+                    ),
+                    html.Div(
+                        className="six columns",
+                        children=[
+                            html.Div(
+                                children=[html.Div(
+                                    data_tabs,
+                                    style={"border": "2px black solid",
+                                           "height": "500px",
+                                           "width": "800px",
+                                           "margin-top": "5px",
+                                           "margin-bottom": "5px",
+                                           "margin-left": "15px"
+                                           }
+                                ), html.Div(
+                                    className="six columns",
+                                    style={"margin": "auto"},
+                                    children=html.Div(
+                                        plot_tabs,
+                                        style={"border": "2px black solid",
+                                               "height": "500px",
+                                               "width": "800px",
+                                               "margin-top": "5px",
+                                               "margin-bottom": "5px",
+                                               "margin-left": "15px"
+                                               }
+                                    )
+                                )
+                                ]
+                            )
+                        ]
+                    ),
+                ]
+            )
         ]),
         # SDM Curves
-        html.Details([
-            html.Summary('SDM Curves',
-                         style={
-                             "text-align": "center"
-                         }),
-            html.Div(sdm_curves)
-        ]),
+        sdm_curves,
         # DET Curves
-        html.Details([
-            html.Summary('DET Curves',
-                         style={
-                             "text-align": "center"
-                         }),
-            html.Div(det_curves)
-        ])],
+        det_curves
+    ],
         style={"margin": "5px 5px 5px 5px"}
     )
 ])
@@ -303,55 +280,53 @@ app.layout = html.Div([
 
 # CALLBACKS
 # Callback to generate study data
-@app.callback(
-    Output("figure", "children"),
-    [Input('upload-data', 'contents')],
-    [State("error", "data")],
-)
-def update_output(contents, error):
-    default_study_data = "data/bfw-v0.1.5-datatable.csv"
-
-    if error or not contents:
-        study_data = pd.read_csv(default_study_data)
-    else:
-        content_type, content_string = contents.split(",")
-        decoded = base64.b64decode(content_string)
-        study_data = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
-
-    df = study_data.head()
-
-    # Add helper function here to validate data
-    # If validated, reformat and add rows (from Alice's stuff)
-    df = viz.relabel(df)
-
-    violin = viz.violin_plot(df)
-
-    data_table = dash_table.DataTable(
-        id='table',
-        columns=[{"name": i, "id": i} for i in df.columns],
-        data=df.to_dict('records'),
-        style_table={
-            'overflowX': 'scroll',
-            'overflowY': 'scroll',
-            'margin-left': 'auto',
-            'margin-right': 'auto',
-            'padding': '4px'
-        },
-    )
-    return data_table
 
 
 @app.callback(Output('tabs-content', 'children'),
               [Input('main-tabs', 'value')])
 def render_content(tab):
-    if tab == 'tab-data-input':
+    if tab == 'tab-overview':
         return html.Div([
-            html.H3('Data Input'),
-            html.P('Upload data context error when you put it in a tab....')
+            html.P('Brief description of tool....')
         ])
-    elif tab == 'tab-overview':
+
+
+@app.callback(Output('tabs-content-plots', 'children'),
+              [Input('plot-tabs', 'value')])
+def render_content(tab):
+    if tab == 'tab-violin':
         return html.Div([
-            html.H3('Overview'),
+            html.H3('Violin Plots'),
+            html.P('Default: Balanced Faces in the Wild Dataset')
+        ])
+    elif tab == 'tab-box':
+        return html.Div([
+            html.H3('Box Plots'),
+            html.P('Brief description of tool....')
+        ])
+    elif tab == 'tab-sdm':
+        return html.Div([
+            html.H3('SDM Curves'),
+            html.P('Brief description of tool....')
+        ])
+
+
+@app.callback(Output('tabs-content-data', 'children'),
+              [Input('data-tabs', 'value')])
+def render_content(tab):
+    if tab == 'tab-input':
+        return html.Div([
+            html.H3('Violin Plots'),
+            html.P('Default: Balanced Faces in the Wild Dataset')
+        ])
+    elif tab == 'tab-table':
+        return html.Div([
+            html.H3('Box Plots'),
+            html.P('Brief description of tool....')
+        ])
+    elif tab == 'tab-summary':
+        return html.Div([
+            html.H3('SDM Curves'),
             html.P('Brief description of tool....')
         ])
 

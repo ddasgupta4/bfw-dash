@@ -24,3 +24,6 @@ to deploy the image on ECS.
 - 2 graphs with SDM curves, 
 - potentially 1 line or a bar graph, and 
 - 1 pivot table that summarizes a lot of the data
+
+- Use graph objects for plots
+- Should visualizations be a separate module?

@@ -1,199 +1,209 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
 
-body{
-  margin: 0px;
-  padding: 0px;
-  background-color: #F3F4F9;
-  font-family: 'Roboto';
-  color: #203cb3;
+body {
+    margin: 0px;
+    padding: 0px;
+    background-color: #F3F4F9;
+    font-family: 'arial';
+    color: #203cb3;
 }
 
 .study-browser-banner {
-  background: rgb(2,21,70);
-  color: white;
-  padding: 12px;
-  padding-left: 48px;
+    background: rgb(2, 21, 70);
+    color: white;
+    padding: 12px;
+    padding-left: 48px;
 }
 
-.div-logo{
-  display: inline-block;
-  float: right;
+.div-logo {
+    display: inline-block;
+    float: right;
 }
 
-.logo{
-  height: 35px;
-  padding: 6px;
-  margin-top: 3px;
+.logo {
+    height: 35px;
+    padding: 6px;
+    margin-top: 3px;
 }
 
-.h2-title, .h2-title-mobile{
-  font-family: 'Roboto';
-  display: inline-block;
-  letter-spacing: 3.8px;
-  font-weight: 800;
-  font-size: 20px;
+.h2-title, .h2-title-mobile {
+    font-family: 'arial';
+    display: inline-block;
+    letter-spacing: 3.8px;
+    font-weight: 800;
+    font-size: 20px;
 }
 
-.h2-title-mobile{
-  display: none;
+.h2-title-mobile {
+    display: none;
 }
 
-h5, h6{
-  font-family: 'Roboto';
-  font-weight: 600;
-  font-size: 16px;
+h5, h6 {
+    font-family: 'arial';
+    font-weight: 600;
+    font-size: 16px;
 }
 
-h5{
-  padding-left: 42px;
+h5 {
+    padding-left: 42px;
 }
 
 .chart {
-  height: auto;
-  width: 40%;
-  margin: 10px 10px 10px 10px;
+    height: auto;
+    width: 40%;
+    margin: 10px 10px 10px 10px;
 }
 
 .sc-group {
-  margin: auto;
+    margin: auto;
 }
 
 .subchart {
-  margin: 10px 10px 10px 10px;
+    margin: 10px 10px 10px 10px;
 }
 
 .alert {
-  padding: 20px;
-  background-color: #f44336;
-  color: white;
+    padding: 20px;
+    background-color: #f44336;
+    color: white;
 }
 
-.bg-white{
-  background-color: white;
-  padding: 24px 32px;
-  height: 500px;
+.bg-white {
+    background-color: white;
+    padding: 24px 32px;
+    height: 500px;
 }
 
-.app-body{
-  margin-left: 4%;
-  height: auto;
-  margin-bottom: auto;
-  margin: auto;
+.app-body {
+    margin-left: 4%;
+    height: auto;
+    margin-bottom: auto;
+    margin: auto;
 }
 
-.card{
-  padding: 24px 24px 24px 24px;
-  margin-left: 4%;
-  margin-right: 4%;
+.card {
+    padding: 24px 24px 24px 24px;
+    margin-left: 4%;
+    margin-right: 4%;
 }
 
-.card-left{
-  padding:24px 24px 24px 24px;
-  margin-left: 0px;
+.card-left {
+    padding: 24px 24px 24px 24px;
+    margin-left: 0px;
 }
 
-.padding-top-bot{
-  padding-top: 12px;
-  padding-bottom: 18px;
+.padding-top-bot {
+    padding-top: 12px;
+    padding-bottom: 18px;
 }
 
-.upload{
-  width: 100%;
-  line-height: 60px;
-  border-width: 1px;
-  border-style: dashed;
-  border-radius: 5px;
-  text-align: center;
-}
-
-.upload p, .upload a {
-  display: inline;
-}
-
-.Select-control{
-  border: 1px solid #203cb3;
-}
-
-details {
-  width: 620px;
-  margin: auto;
-}
-
-details > summary::-webkit-details-marker {
-  display: none;
-}
-
-@media only screen and (max-width: 320px){
-  .Select-menu-outer, .Select-value{
-    font-size: 10.5px;
-  }
-  .upload{
-    padding: 5px;
-  }
-}
-
-/* mobile */
-@media only screen and (max-width: 768px) {
-  .upload{
+.upload {
+    width: 100%;
     line-height: 60px;
     border-width: 1px;
     border-style: dashed;
     border-radius: 5px;
     text-align: center;
-    font-size: small;
-  }
+}
 
-  .columns{
-    width: 100%;
-  }
+.upload p, .upload a {
+    display: inline;
+}
 
-  .card, .card-left{
-    padding: 24px;
-    margin: 0px;
-  }
+.Select-control {
+    border: 1px solid #203cb3;
+}
 
-  .bg-white{
-    height: auto;
-  }
+table {
+    overflow-x: scroll;
+    overflow-y: scroll;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 4px;
+    font-family: 'arial';
+}
 
-  .study-browser-banner{
-    padding-left: 24px;
-  }
+details > summary::-webkit-details-marker {
+    display: none;
+}
 
-  .logo{
-    height: 28px;
-    padding-left:0px;
-    padding-bottom:0px;
-  }
+@media only screen and (max-width: 320px) {
+    .Select-menu-outer, .Select-value {
+        font-size: 10.5px;
+    }
 
-  .div-logo{
-    float: left;
-    display: block;
-    width: 100%;
-  }
+    .upload {
+        padding: 5px;
+    }
+}
 
-  .h2-title{
-    display:none;
-  }
+/* mobile */
+@media only screen and (max-width: 768px) {
+    .upload {
+        line-height: 60px;
+        border-width: 1px;
+        border-style: dashed;
+        border-radius: 5px;
+        text-align: center;
+        font-size: small;
+    }
 
-  .h2-title-mobile{
-    display:block;
-    float:left;
-  }
+    .columns {
+        width: 100%;
+    }
 
-  .app-body{
-    margin-left: 1000px;
-  }
+    .card, .card-left {
+        padding: 24px;
+        margin: 0px;
+    }
 
-  .four.columns                   { width: 100%; }
-  .eight.columns                  { width: 100%; }
+    .bg-white {
+        height: auto;
+    }
 
-  .columns{
-    text-align: center;
-  }
+    .study-browser-banner {
+        padding-left: 24px;
+    }
 
-  .user-control{
-    padding-top: 24px;
-    padding-bottom: 24px;
-  }
+    .logo {
+        height: 28px;
+        padding-left: 0px;
+        padding-bottom: 0px;
+    }
+
+    .div-logo {
+        float: left;
+        display: block;
+        width: 100%;
+    }
+
+    .h2-title {
+        display: none;
+    }
+
+    .h2-title-mobile {
+        display: block;
+        float: left;
+    }
+
+    .app-body {
+        margin-left: 1000px;
+    }
+
+    .four.columns {
+        width: 100%;
+    }
+
+    .eight.columns {
+        width: 100%;
+    }
+
+    .columns {
+        text-align: center;
+    }
+
+    .user-control {
+        padding-top: 24px;
+        padding-bottom: 24px;
+    }
 }

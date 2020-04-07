@@ -1,20 +1,22 @@
-import flask
-import dash
-import dash_bootstrap_components as dbc
-import dash_html_components as html
-import plotly.graph_objs as gobs
 import base64
 import io
+import os
+import uuid
+
 import dash
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
-import plotly.graph_objs as go
+import flask
 import pandas as pd
-import pathlib
-
+import visualizations as viz
 from dash.dependencies import Input, Output, State
-from scipy import stats
+from flask_caching import Cache
+
+app_dir = os.getcwd()
+
+filecache_dir = os.path.join(app_dir, 'cache-directory')
 
 external_stylesheets = ['https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css']
 
@@ -32,10 +34,24 @@ app = dash.Dash(__name__,
 
 default_study_data = "data/bfw-v0.1.5-datatable.csv"
 
+# Cache definition
+cache = Cache(app.server, config={
+    'CACHE_TYPE': 'simple',
+    # Note that filesystem cache doesn't work on systems with ephemeral
+    # filesystems like Heroku.
+    # 'CACHE_TYPE': 'filesystem',
+    'CACHE_DIR': 'cache-directory',
+
+    # should be equal to maximum number of users on the app at a single time
+    # higher numbers will store more data in the filesystem / redis cache
+    'CACHE_THRESHOLD': 5
+})
+
 # LAYOUT COMPONENTS
 # ==========
 
 # Your components go here.
+
 
 header = dbc.NavbarSimple(
     children=[
@@ -51,177 +67,67 @@ header = dbc.NavbarSimple(
             label="More",
         ),
     ],
-    brand="BFW Dashboard",
+    brand="'Fairness' Evaluation for Facial Recognition Technology",
     brand_href="#",
     color="primary",
     dark=True
 )
 
-data_input = html.Div(
-    className="row card",
-    children=[
-        # User Controls
-        html.Div(
-            className="four columns card",
-            style={"border": "2px black solid"},
-            children=[
-                # data_select,
-                html.Div(
-                    children=[
-                        html.Div(
-                            className="padding-top-bot",
-                            children=[
-                                html.H6("Select Data (This will go under the data tab)"),
-                                dcc.Upload(
-                                    id="upload-data",
-                                    className="upload",
-                                    children=html.Div(
-                                        children=[
-                                            html.P("Drag and Drop or "),
-                                            html.A("Select Files"),
-                                        ]
-                                    ),
-                                    accept=".csv",
-                                ),
-                            ],
-                        ),
-                    ],
-                )
-            ],
-        ),
-        dcc.Store(id="error", storage_type="memory"),
-    ],
-)
-
-tabs = html.Div([
-
-    dcc.Tabs(id="main-tabs", value='tab-overview', children=[
-        dcc.Tab(label='Overview', value='tab-overview'),
-        dcc.Tab(label='Data', value='tab-data-input'),
-        dcc.Tab(label='Dataframe', value='tab-dataframe'),
+upload_data = html.Div([dcc.Upload(
+    id='upload-data',
+    children=html.Div([
+        'Drag and Drop or ',
+        html.A('Select File')
     ]),
-    html.Div(id='tabs-content', style={"border": "2px black solid"})
+    style={
+        'borderWidth': '1px',
+        'borderStyle': 'dashed',
+        'borderRadius': '5px',
+        'textAlign': 'center',
+        'margin': 'auto',
+        'margin-top': '5px',
+        'padding': '5px'
+    },
+    multiple=False
+),
+    html.Div(id='data-table-div', style={'display': 'none'})
+    , ])
+
+session_id = str(uuid.uuid4())
+
+"""
+                              dcc.Dropdown(id='dropdown', options=[
+                                  {'label': i, 'value': i} for i in
+                                  (['fold', 'p1', 'p2', 'label', 'id1', 'id2', 'att1', 'att2', 'vgg16',
+                                    'resnet50', 'senet50', 'a1', 'a2', 'g1', 'g2', 'e1', 'e2'],)
+                              ], multi=True, placeholder='Filter datatable columns...')
+"""
+
+overview = html.Div(children=[html.H3("Overview"),
+                              upload_data
+                              ],
+                    style={"height": "500px",
+                           "backgroundColor": "white",
+                           "padding": "5px",
+                           "border": "1px solid #f8f9fa",
+                           "text-align": "center"})
+
+data_tabs = html.Div([
+    dcc.Tabs(id="data-tabs", value='tab-data', children=[
+        dcc.Tab(label='Data Table', value='tab-frame'),
+        dcc.Tab(label='Data Summary', value='tab-summary'),
+    ]),
+    html.Div(id='tabs-content-data', style={"height": "300px"})
 ])
 
-summary_pivot = html.Div(
-    className="row",
-    children=[
-        html.Div(
-            className="row app-body",
-            style={"border": "2px black solid",
-                   "height": "200px",
-                   "width": "800px",
-                   "margin-top": "5px",
-                   "margin-bottom": "5px",
-                   },
-            children=[
-                html.Div(html.H5("Summary Pivot Table", style={"text-align": "center"})),
-            ]
-        )])
-
-violin_plots = html.Div(
-    className="row",
-    children=[
-        # Column
-        # New Column
-        html.Div(
-            className="row sc-group",
-            children=html.Div([
-                html.Div(html.H5('Violin Plot 1', style={"text-align": "center"}),
-                         style={"border": "2px black solid",
-                                "height": "200px",
-                                "width": "800px",
-                                "margin-top": "5px",
-                                "margin-bottom": "5px"
-                                }),
-                html.Div(html.H5('Violin Plot 2', style={"text-align": "center"}),
-                         style={"border": "2px black solid",
-                                "height": "200px",
-                                "width": "800px",
-                                "margin-top": "5px",
-                                "margin-bottom": "5px"
-                                }),
-            ])
-        )
-    ]
-)
-
-sdm_curves = html.Div(
-    className="row",
-    children=[
-        # Column
-        # New Column
-        html.Div(
-            className="row sc-group",
-            children=[
-                html.Div(html.H5('SDM Curve 1', style={"text-align": "center"}),
-                         style={"border": "2px black solid",
-                                "height": "200px",
-                                "width": "400px",
-                                "margin-top": "5px",
-                                "margin-bottom": "5px"
-                                }),
-                html.Div(html.H5('SDM Curve 2', style={"text-align": "center"}),
-                         style={"border": "2px black solid",
-                                "height": "200px",
-                                "width": "400px",
-                                "margin": "5px",
-                                "margin-bottom": "5px"
-                                }),
-            ]
-        )
-    ]
-)
-
-det_curves = html.Div(
-    className="row",
-    children=[
-        html.Div(
-            className="row app-body",
-            style={"border": "2px black solid",
-                   "height": "200px",
-                   "width": "800px",
-                   "margin-top": "5px",
-                   "margin-bottom": "5px",
-                   },
-            children=[
-                html.Div(html.H5("DET Curve 1", style={"text-align": "center"})),
-            ]
-        ),
-        # Column
-        # New Column
-        html.Div(
-            className="row sc-group",
-            children=[
-                html.Div(html.H5('DET Curve 2', style={"text-align": "center"}),
-                         style={"border": "2px black solid",
-                                "height": "200px",
-                                "width": "400px",
-                                "margin-top": "5px",
-                                "margin-bottom": "5px"
-                                }),
-                html.Div(html.H5('DET Curve 3', style={"text-align": "center"}),
-                         style={"border": "2px black solid",
-                                "height": "200px",
-                                "width": "400px",
-                                "margin": "5px",
-                                "margin-bottom": "5px"
-                                }),
-            ]
-        )
-    ]
-)
-
-dataframe_print = html.Div(
-    className="row app-body",
-    style={"border": "2px black solid"},
-    children=[
-        html.Div(
-            className="row chart",
-            id='figure'
-        )
-    ]
-)
+plot_tabs = html.Div([
+    dcc.Tabs(id="plot-tabs", value='tab-graphs', children=[
+        dcc.Tab(label='Violin Plots', value='tab-violin'),
+        dcc.Tab(label='Box Plots', value='tab-box'),
+        dcc.Tab(label='SDM Curves', value='tab-sdm'),
+    ]),
+    html.Div(id='tabs-content-plots', style={"height": "300px"})
+])
 
 # INTERACTION
 # ===========
@@ -234,77 +140,171 @@ dataframe_print = html.Div(
 # https://github.com/plotly/dash-sample-apps/blob/master/apps/dash-study-browser/app.py
 
 
-app.layout = html.Div([
-    html.Div(children=[
-        html.Div(header),
-        tabs,
-        data_input,
-        # Summary Pivot
-        summary_pivot,
-        # Violin Plots
-        violin_plots,
-        sdm_curves,
-        det_curves,
-        html.P("This will go under the Dataframe tab", style={"text-align": "center"}),
-        dataframe_print],
-        style={"margin": "5px 5px 5px 5px"}
-    )
-])
+app.layout = html.Div(children=[
+    html.Div(header),
+    html.Div(className="row",
+             children=[
+                 html.Div(className="six columns",
+                          children=[
+                              overview],
+                          style={"width": "25%",
+                                 "padding": "5px"}),
+                 html.Div(className="six columns",
+                          children=[
+                              data_tabs,
+                              plot_tabs],
+                          style={"width": "75%",
+                                 "padding": "5px"}
+                          )],
+             style={"margin": "auto",
+                    "height": "800px"}),
+    html.Div(session_id, id='session-id')  # style={'display': 'none'})
+], style={"padding": "5px"})
 
 
 # CALLBACKS
 # Callback to generate study data
-@app.callback(
-    Output("figure", "children"),
-    [Input('upload-data', 'contents')],
-    [State("error", "data")],
-)
-def update_output(contents, error):
+def parse_table(contents, filename):
+    '''
+    Parse uploaded tabular file and return dataframe.
+    '''
+    print('Calling parse_table')
+
     default_study_data = "data/bfw-v0.1.5-datatable.csv"
 
-    if error or not contents:
-        study_data = pd.read_csv(default_study_data)
-    else:
-        content_type, content_string = contents.split(",")
-        decoded = base64.b64decode(content_string)
-        study_data = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
+    try:
+        if contents is None:
+            study_data = pd.read_csv(default_study_data)
+        else:
+            content_type, content_string = contents.split(",")
+            decoded = base64.b64decode(content_string)
+            study_data = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
+    except Exception as e:
+        print(e)
+    print('Read dataframe:')
+    print(study_data.columns)
+    # study_data = viz.relabel(study_data)
+    return study_data
 
-    df = study_data.head()
+
+def write_dataframe(session_id, df, filename="bfw-v0.1.5-datatable.csv"):
+    '''
+    Write dataframe to disk, for now just as CSV
+    For now do not preserve or distinguish filename;
+    user has one file at once.
+    '''
+    if filename is None:
+        filename = "bfw-v0.1.5-datatable.csv"
+    filename = session_id + filename
+    print('Calling write_dataframe')
+    file = os.path.join(filecache_dir, session_id)
+    try:
+        df = viz.relabel(df)
+    except Exception as e:
+        print(e)
+    df.to_pickle(file)
+
+
+@cache.memoize()
+def read_dataframe(session_id, filename="bfw-v0.1.5-datatable.csv"):
+    '''
+    Read dataframe from disk, for now just as CSV
+    '''
+    if filename is None:
+        filename = "bfw-v0.1.5-datatable.csv"
+    filename = session_id + filename
+    print('Calling read_dataframe')
+    file = os.path.join(filecache_dir, session_id)
+    df = pd.read_pickle(file)
+    print('** Reading data from disk **')
+    return df
+
+
+@app.callback(
+    Output('data-table-div', 'children'),
+    [Input('upload-data', 'contents'),
+     Input('upload-data', 'filename')],
+    [State('session-id', 'children')])
+def update_table(contents, filename, session_id):
+    # write contents to file
+    print('Calling update table')
+    try:
+        df = read_dataframe(session_id, filename)
+    except Exception as e:
+        print(e)
+        df = parse_table(contents, filename)
+        write_dataframe(session_id, df, filename)
+
+    df = df.sample(50)
 
     data_table = dash_table.DataTable(
         id='table',
-        columns=[{"name": i, "id": i} for i in df.columns],
-        data=df.to_dict('records'),
-        style_table={
-            'overflowX': 'scroll',
-            'overflowY': 'scroll',
-            'margin-left': 'auto',
-            'margin-right': 'auto',
-            'align': 'center'
+        style_data={
+            'whiteSpace': 'normal',
+            'height': 'auto'
         },
+        data=df.to_dict('records'),
+        columns=[{"name": i, "id": i} for i in df.columns],
+        style_table={'overflowX': 'scroll', 'padding': '10px',
+                     'overflowY': 'scroll', 'height': '275px'},
+
+        style_cell={
+            'overflow': 'hidden',
+            'textOverflow': 'ellipsis',
+            'maxWidth': 0,
+            'fontSize': 10,
+            'font-family': 'arial'
+        },
+        sort_action='native',
+        filter_action='native'
     )
+
     return data_table
 
 
-@app.callback(Output('tabs-content', 'children'),
-              [Input('main-tabs', 'value')])
-def render_content(tab):
-    if tab == 'tab-data-input':
+@app.callback(Output('tabs-content-plots', 'children'),
+              [Input('plot-tabs', 'value'),
+               Input('upload-data', 'contents'),
+               Input('upload-data', 'filename')],
+              [State('session-id', 'children')])
+def render_dist_tabs(tab, contents, filename, session_id):
+    try:
+        df = read_dataframe(session_id, filename)
+    except Exception as e:
+        print(e)
+        df = parse_table(contents, filename)
+        write_dataframe(session_id, df, filename)
+
+    if tab == 'tab-violin':
         return html.Div([
-            html.H3('Data Input'),
-            html.P('Upload data context error when you put it in a tab....')
+            dcc.Graph(figure=viz.violin_plot(df))
         ])
-    elif tab == 'tab-dataframe':
+    elif tab == 'tab-box':
         return html.Div([
-            html.H3('Display Dataframe'),
-            html.P('Show dataframe of chosen data (temporarily included at bottom of page)')
+            dcc.Graph(figure=viz.box_plot(df))
         ])
-    elif tab == 'tab-overview':
+    elif tab == 'tab-sdm':
         return html.Div([
-            html.H3('Overview'),
+            html.H3('SDM Curves'),
+            html.P('Brief description of tool....')
+        ])
+
+
+@app.callback(Output('tabs-content-data', 'children'),
+              [Input('data-tabs', 'value')],
+              [State('session-id', 'children')])
+def render_data_tabs(tab, session_id):
+    if tab == 'tab-frame':
+        return html.Div([
+            html.Div(id='data-table-div')])
+    elif tab == 'tab-summary':
+        return html.Div([
+            html.H3('SDM Curves'),
             html.P('Brief description of tool....')
         ])
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, port=5050)
+    print('session ended')
+    cache.clear()
