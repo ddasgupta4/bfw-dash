@@ -1,2 +1,4 @@
 data 
 .DS_STORE
+cache-directory
+__pycache__/
