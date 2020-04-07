@@ -4,7 +4,7 @@ body {
     margin: 0px;
     padding: 0px;
     background-color: #F3F4F9;
-    font-family: 'Roboto';
+    font-family: 'arial';
     color: #203cb3;
 }
 
@@ -27,7 +27,7 @@ body {
 }
 
 .h2-title, .h2-title-mobile {
-    font-family: 'Roboto';
+    font-family: 'arial';
     display: inline-block;
     letter-spacing: 3.8px;
     font-weight: 800;
@@ -39,7 +39,7 @@ body {
 }
 
 h5, h6 {
-    font-family: 'Roboto';
+    font-family: 'arial';
     font-weight: 600;
     font-size: 16px;
 }
@@ -120,7 +120,7 @@ table {
     margin-left: auto;
     margin-right: auto;
     padding: 4px;
-    font-family: 'Roboto';
+    font-family: 'arial';
 }
 
 details > summary::-webkit-details-marker {
