@@ -92,20 +92,20 @@ upload_data = html.Div([dcc.Upload(
 ),
     html.Div(id='data-table-div', style={'display': 'none'})
     , ])
+
+session_id = str(uuid.uuid4())
+
 """
-over_tabs = html.Div([
-    dcc.Tabs(id="main-tabs", value='tab-overview', children=[
-        dcc.Tab(label='Overview', value='tab-overview'),
-    ]),
-    html.Div(id='tabs-content',
-             style={"height": "500px",
-                    "backgroundColor": "white",
-                    "padding": "5px",
-                    "border": "1px solid #f8f9fa"})
-])
+                              dcc.Dropdown(id='dropdown', options=[
+                                  {'label': i, 'value': i} for i in
+                                  (['fold', 'p1', 'p2', 'label', 'id1', 'id2', 'att1', 'att2', 'vgg16',
+                                    'resnet50', 'senet50', 'a1', 'a2', 'g1', 'g2', 'e1', 'e2'],)
+                              ], multi=True, placeholder='Filter datatable columns...')
 """
+
 overview = html.Div(children=[html.H3("Overview"),
-                              upload_data],
+                              upload_data
+                              ],
                     style={"height": "500px",
                            "backgroundColor": "white",
                            "padding": "5px",
@@ -139,8 +139,6 @@ plot_tabs = html.Div([
 # ==========
 # https://github.com/plotly/dash-sample-apps/blob/master/apps/dash-study-browser/app.py
 
-
-session_id = str(uuid.uuid4())
 
 app.layout = html.Div(children=[
     html.Div(header),
@@ -183,14 +181,13 @@ def parse_table(contents, filename):
             study_data = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
     except Exception as e:
         print(e)
-        raise
     print('Read dataframe:')
     print(study_data.columns)
     # study_data = viz.relabel(study_data)
-    return study_data.head(20)
+    return study_data
 
 
-def write_dataframe(session_id, df, filename):
+def write_dataframe(session_id, df, filename="bfw-v0.1.5-datatable.csv"):
     '''
     Write dataframe to disk, for now just as CSV
     For now do not preserve or distinguish filename;
@@ -200,7 +197,7 @@ def write_dataframe(session_id, df, filename):
         filename = "bfw-v0.1.5-datatable.csv"
     filename = session_id + filename
     print('Calling write_dataframe')
-    file = os.path.join(filecache_dir, filename)
+    file = os.path.join(filecache_dir, session_id)
     try:
         df = viz.relabel(df)
     except Exception as e:
@@ -209,7 +206,7 @@ def write_dataframe(session_id, df, filename):
 
 
 @cache.memoize()
-def read_dataframe(session_id, filename):
+def read_dataframe(session_id, filename="bfw-v0.1.5-datatable.csv"):
     '''
     Read dataframe from disk, for now just as CSV
     '''
@@ -217,7 +214,7 @@ def read_dataframe(session_id, filename):
         filename = "bfw-v0.1.5-datatable.csv"
     filename = session_id + filename
     print('Calling read_dataframe')
-    file = os.path.join(filecache_dir, filename)
+    file = os.path.join(filecache_dir, session_id)
     df = pd.read_pickle(file)
     print('** Reading data from disk **')
     return df
@@ -231,13 +228,14 @@ def read_dataframe(session_id, filename):
 def update_table(contents, filename, session_id):
     # write contents to file
     print('Calling update table')
-    print(filename)
     try:
         df = read_dataframe(session_id, filename)
     except Exception as e:
         print(e)
         df = parse_table(contents, filename)
         write_dataframe(session_id, df, filename)
+
+    df = df.sample(50)
 
     data_table = dash_table.DataTable(
         id='table',
@@ -265,18 +263,25 @@ def update_table(contents, filename, session_id):
 
 
 @app.callback(Output('tabs-content-plots', 'children'),
-              [Input('plot-tabs', 'value')],
+              [Input('plot-tabs', 'value'),
+               Input('upload-data', 'contents'),
+               Input('upload-data', 'filename')],
               [State('session-id', 'children')])
-def render_dist_tabs(tab, session_id):
+def render_dist_tabs(tab, contents, filename, session_id):
+    try:
+        df = read_dataframe(session_id, filename)
+    except Exception as e:
+        print(e)
+        df = parse_table(contents, filename)
+        write_dataframe(session_id, df, filename)
+
     if tab == 'tab-violin':
         return html.Div([
-            html.H3('Violin Plots'),
-            html.P('Default: Balanced Faces in the Wild Dataset')
+            dcc.Graph(figure=viz.violin_plot(df))
         ])
     elif tab == 'tab-box':
         return html.Div([
-            html.H3('Box Plots'),
-            html.P('Brief description of tool....')
+            dcc.Graph(figure=viz.box_plot(df))
         ])
     elif tab == 'tab-sdm':
         return html.Div([
