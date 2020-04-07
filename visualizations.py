@@ -54,16 +54,3 @@ def box_plot(BFWdf):
     ).update_xaxes(categoryorder="total ascending")
 
     return fig
-
-
-def histogram(BFWdf):
-    fig = px.histogram(
-        BFWdf,
-        y="score",  # score
-        x='subgroup',  # subgroup
-        color="Tag",
-        title="Histogram Per Subgroup Ascending",
-        log_y=True,  # y-axis is log-scaled in cartesian coordinates,
-        hover_data=BFWdf.columns).update_xaxes(categoryorder="total ascending")
-
-    return fig
