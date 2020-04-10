@@ -55,7 +55,7 @@ cache = Cache(app.server, config={
 
 header = dbc.NavbarSimple(
     children=[
-        dbc.NavItem(dbc.NavLink("Page 1", href="#")),
+        dbc.NavItem(dbc.NavLink("Dashboard", href="#")),
         dbc.DropdownMenu(
             children=[
                 dbc.DropdownMenuItem("More pages", header=True),
@@ -77,7 +77,11 @@ upload_data = html.Div([dcc.Upload(
     id='upload-data',
     children=html.Div([
         'Drag and Drop or ',
-        html.A('Select File')
+        html.A('Select File'),
+        html.P("default: bfw-v0.1.5-datatable",
+               style={
+                   "fontSize": "10px"
+               })
     ]),
     style={
         'borderWidth': '1px',
@@ -86,7 +90,9 @@ upload_data = html.Div([dcc.Upload(
         'textAlign': 'center',
         'margin': 'auto',
         'margin-top': '5px',
-        'padding': '5px'
+        'padding': '5px',
+        'width': '90%',
+        'height': '60px'
     },
     multiple=False
 ),
@@ -95,22 +101,27 @@ upload_data = html.Div([dcc.Upload(
 
 session_id = str(uuid.uuid4())
 
-"""
-                              dcc.Dropdown(id='dropdown', options=[
-                                  {'label': i, 'value': i} for i in
-                                  (['fold', 'p1', 'p2', 'label', 'id1', 'id2', 'att1', 'att2', 'vgg16',
-                                    'resnet50', 'senet50', 'a1', 'a2', 'g1', 'g2', 'e1', 'e2'],)
-                              ], multi=True, placeholder='Filter datatable columns...')
-"""
-
-overview = html.Div(children=[html.H3("Overview"),
-                              upload_data
+overview = html.Div(children=[html.Img(src='assets/bfw-logo.png',
+                                       style={
+                                           "width": "75%"
+                                       }),
+                              html.Div(children=[
+                                  html.Div(upload_data, style={"margin-top": "30px"})
                               ],
-                    style={"height": "500px",
+                                  style={
+                                      "height": "40%",
+                                      "width": "90%",
+                                      "background-color": "#F3F4F9",
+                                      "margin": "auto",
+                                      "padding": "10px",
+                                  })
+                              ],
+                    style={"height": "360px",
                            "backgroundColor": "white",
                            "padding": "5px",
                            "border": "1px solid #f8f9fa",
-                           "text-align": "center"})
+                           "text-align": "center",
+                           "margin-top": "1px"})
 
 data_tabs = html.Div([
     dcc.Tabs(id="data-tabs", value='tab-data', children=[
@@ -119,6 +130,14 @@ data_tabs = html.Div([
     ]),
     html.Div(id='tabs-content-data', style={"height": "300px"})
 ])
+
+other_tabs = html.Div([
+    dcc.Tabs(id="other-tabs", value='tab-other', children=[
+        dcc.Tab(label='Confusion Matrix', value='tab-matrix'),
+        dcc.Tab(label='DET Curves', value='tab-det'),
+    ]),
+    html.Div(id='tabs-content-other', style={"height": "300px"})
+], style={"margin-top": "5px"})
 
 plot_tabs = html.Div([
     dcc.Tabs(id="plot-tabs", value='tab-graphs', children=[
@@ -146,7 +165,7 @@ app.layout = html.Div(children=[
              children=[
                  html.Div(className="six columns",
                           children=[
-                              overview],
+                              overview, other_tabs],
                           style={"width": "25%",
                                  "padding": "5px"}),
                  html.Div(className="six columns",
@@ -158,7 +177,7 @@ app.layout = html.Div(children=[
                           )],
              style={"margin": "auto",
                     "height": "800px"}),
-    html.Div(session_id, id='session-id')  # style={'display': 'none'})
+    html.Div(session_id, id='session-id', style={'display': 'none'})
 ], style={"padding": "5px"})
 
 
@@ -181,9 +200,10 @@ def parse_table(contents, filename):
             study_data = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
     except Exception as e:
         print(e)
-    print('Read dataframe:')
-    print(study_data.columns)
-    # study_data = viz.relabel(study_data)
+    try:
+        study_data = viz.relabel(study_data)
+    except Exception as e:
+        print(e)
     return study_data
 
 
@@ -198,10 +218,6 @@ def write_dataframe(session_id, df, filename="bfw-v0.1.5-datatable.csv"):
     filename = session_id + filename
     print('Calling write_dataframe')
     file = os.path.join(filecache_dir, session_id)
-    try:
-        df = viz.relabel(df)
-    except Exception as e:
-        print(e)
     df.to_pickle(file)
 
 
@@ -232,10 +248,15 @@ def update_table(contents, filename, session_id):
         df = read_dataframe(session_id, filename)
     except Exception as e:
         print(e)
-        df = parse_table(contents, filename)
+        df = parse_table(contents, filename).sample(50000)
         write_dataframe(session_id, df, filename)
 
-    df = df.sample(50)
+    try:
+        df = df.sample(50)[['p1', 'p2', 'Tag', 'id1', 'id2', 'att1', 'att2', 'score', 'subgroup', 'label']]
+        df['score'] = pd.Series(["{0:.2f}%".format(val * 100) for val in df['score']], index=df.index)
+    except Exception as e:
+        print(e)
+        df = df.sample(50)
 
     data_table = dash_table.DataTable(
         id='table',
@@ -245,7 +266,7 @@ def update_table(contents, filename, session_id):
         },
         data=df.to_dict('records'),
         columns=[{"name": i, "id": i} for i in df.columns],
-        style_table={'overflowX': 'scroll', 'padding': '10px',
+        style_table={'overflowX': 'scroll', 'padding': '15px',
                      'overflowY': 'scroll', 'height': '275px'},
 
         style_cell={
@@ -273,7 +294,7 @@ def render_dist_tabs(tab, contents, filename, session_id):
     except Exception as e:
         print(e)
         df = parse_table(contents, filename)
-        write_dataframe(session_id, df, filename)
+        # write_dataframe(session_id, df, filename)
 
     if tab == 'tab-violin':
         return html.Div([
@@ -285,8 +306,7 @@ def render_dist_tabs(tab, contents, filename, session_id):
         ])
     elif tab == 'tab-sdm':
         return html.Div([
-            html.H3('SDM Curves'),
-            html.P('Brief description of tool....')
+            dcc.Graph(figure=viz.sdm_curve(df))
         ])
 
 
@@ -298,10 +318,27 @@ def render_data_tabs(tab, session_id):
         return html.Div([
             html.Div(id='data-table-div')])
     elif tab == 'tab-summary':
+        return html.Div(html.Img(src='assets/summary-pivot.png',
+                                 style={
+                                     "width": "75%",
+                                     "padding": "5px"
+                                 }))
+
+
+@app.callback(Output('tabs-content-other', 'children'),
+              [Input('other-tabs', 'value')],
+              [State('session-id', 'children')])
+def render_other_tabs(tab, session_id):
+    if tab == 'tab-matrix':
         return html.Div([
-            html.H3('SDM Curves'),
-            html.P('Brief description of tool....')
+            html.Img(src='assets/confusion-matrix.png',
+                     style={
+                         "width": "100%",
+                         "padding": "5px"
+                     })
         ])
+    elif tab == 'tab-det':
+        return html.Div([dcc.Graph(figure=viz.mock_det())])
 
 
 if __name__ == '__main__':
