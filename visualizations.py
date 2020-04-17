@@ -25,7 +25,7 @@ def violin_plot(BFWdf):
         x='subgroup',  # subgroup
         color="Tag",
         box=True,  # shows boxplot inside violin
-        title="Violin Plot Per Subgroup",
+        # title="Violin Plot Per Subgroup",
         violinmode='group',  # 'overlay', 'group'
         # log_y=True,  # y-axis is log-scaled in cartesian coordinates
         category_orders={"Tag": ["Imposter", "Genuine"]}
@@ -43,7 +43,7 @@ def box_plot(BFWdf):
         color="Tag",
         boxmode="group",  # 'overlay' 'group'
         notched=True,  # used notched shape so it narrows around the median
-        title="Box Plot Per Subgroup",
+        # title="Box Plot Per Subgroup",
         points="outliers",
         # log_y=True,  # y-axis is log-scaled in cartesian coordinates
         category_orders={"Tag": ["Imposter", "Genuine"]}
@@ -110,7 +110,7 @@ def sdm_curve(data):
 
     fig.update_traces(meanline_visible=True)
     fig.update_layout(violinmode='overlay',
-                      title="SDM Curve Per Subgroup",
+                      # title="SDM Curve Per Subgroup",
                       xaxis_title="subgroup",
                       yaxis_title="score")
     fig.update_xaxes(categoryorder="category ascending")

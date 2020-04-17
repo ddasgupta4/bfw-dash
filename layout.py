@@ -71,20 +71,22 @@ header = dbc.NavbarSimple(
 )
 
 data_tabs = html.Div([
-    dcc.Tabs(id="data-tabs", value='tab-data', children=[
+    dcc.Tabs(id="data-tabs", value='tab-frame', children=[
         dcc.Tab(label='Data Table', value='tab-frame'),
         dcc.Tab(label='Data Summary', value='tab-summary'),
-    ]),
-    html.Div(id='tabs-content-data', style={"height": "300px"})
-])
+    ], style={"margin-top": "5px"}),
+    html.Div(id='tabs-content-data',
+             style={"height": "300px"})],
+    style={"height": "365px"})
 
-other_tabs = html.Div([
-    dcc.Tabs(id="other-tabs", value='tab-other', children=[
+error_tabs = html.Div([
+    dcc.Tabs(id="error-tabs", value='tab-error', children=[
         dcc.Tab(label='Confusion Matrix', value='tab-matrix'),
         dcc.Tab(label='DET Curves', value='tab-det'),
     ]),
-    html.Div(id='tabs-content-other', style={"height": "300px"})
-], style={"margin-top": "5px"})
+    html.Div(id='tabs-content-error',
+             style={"height": "300px"})],
+    style={"height": "365px"})
 
 plot_tabs = html.Div([
     dcc.Tabs(id="plot-tabs", value='tab-graphs', children=[
@@ -93,4 +95,4 @@ plot_tabs = html.Div([
         dcc.Tab(label='SDM Curves', value='tab-sdm'),
     ]),
     html.Div(id='tabs-content-plots', style={"height": "300px"})
-])
+], style={"height": "300px"})

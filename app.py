@@ -61,41 +61,35 @@ overview = layout.overview
 
 data_tabs = layout.data_tabs
 
-other_tabs = layout.other_tabs
+error_tabs = layout.error_tabs
 
 plot_tabs = layout.plot_tabs
 
-# INTERACTION
-# ===========
-
-# Your interaction goes here.
-
-
 # APP LAYOUT
-# ==========
-# https://github.com/plotly/dash-sample-apps/blob/master/apps/dash-study-browser/app.py
 
+app.layout = html.Div(
+    children=[
+        html.Div(header),
 
-app.layout = html.Div(children=[
-    html.Div(header),
-    html.Div(className="row",
-             children=[
-                 html.Div(className="six columns",
-                          children=[
-                              overview, other_tabs],
-                          style={"width": "25%",
-                                 "padding": "5px"}),
-                 html.Div(className="six columns",
-                          children=[
-                              data_tabs,
-                              plot_tabs],
-                          style={"width": "75%",
-                                 "padding": "5px"}
-                          )],
-             style={"margin": "auto",
-                    "height": "800px"}),
-    html.Div(session_id, id='session-id', style={'display': 'none'})
-], style={"padding": "5px"})
+        html.Div(className="row",
+                 children=[
+                     html.Div(className="six columns",
+                              children=[
+                                  overview, data_tabs],
+                              style={"width": "25%",
+                                     "padding": "5px"}),
+                     html.Div(className="six columns",
+                              children=[
+                                  error_tabs,
+                                  plot_tabs],
+                              style={"width": "75%",
+                                     "padding": "5px"}
+                              )],
+                 style={"margin": "auto",
+                        "height": "800px"}),
+
+        html.Div(session_id, id='session-id', style={'display': 'none'})
+    ], style={"padding": "5px"})
 
 
 # CALLBACKS
@@ -165,7 +159,7 @@ def update_table(contents, filename, session_id):
         df = parse_table(contents, filename).sample(5000)
         write_dataframe(session_id, df, filename)
 
-    df = df.sample(50)[['p1', 'p2', 'Tag', 'id1', 'id2', 'att1', 'att2', 'score', 'subgroup', 'label']]
+    df = df.sample(50)[['id1', 'id2', 'att1', 'att2', 'Tag', 'score', 'subgroup']]
     df['score'] = pd.Series(["{0:.2f}%".format(val * 100) for val in df['score']], index=df.index)
 
     data_table = dash_table.DataTable(
@@ -177,7 +171,7 @@ def update_table(contents, filename, session_id):
         data=df.to_dict('records'),
         columns=[{"name": i, "id": i} for i in df.columns],
         style_table={'overflowX': 'scroll', 'padding': '15px',
-                     'overflowY': 'scroll', 'height': '275px'},
+                     'overflowY': 'scroll', 'height': '300px'},
         style_cell={
             'overflow': 'hidden',
             'textOverflow': 'ellipsis',
@@ -193,11 +187,8 @@ def update_table(contents, filename, session_id):
 
 
 @app.callback(Output('tabs-content-plots', 'children'),
-              [Input('plot-tabs', 'value'),
-               Input('upload-data', 'contents'),
-               Input('upload-data', 'filename')],
-              [State('session-id', 'children')])
-def render_dist_tabs(tab, contents, filename, session_id):
+              [Input('plot-tabs', 'value')])
+def render_dist_tabs(tab):
     try:
         df = read_dataframe(now)
     except Exception as e:
@@ -225,25 +216,15 @@ def render_data_tabs(tab, session_id):
         return html.Div([
             html.Div(id='data-table-div')])
     elif tab == 'tab-summary':
-        return html.Div(html.Img(src='assets/summary-pivot.png',
-                                 style={
-                                     "width": "75%",
-                                     "padding": "5px"
-                                 }))
+        return html.Div()
 
 
-@app.callback(Output('tabs-content-other', 'children'),
-              [Input('other-tabs', 'value')],
+@app.callback(Output('tabs-content-error', 'children'),
+              [Input('error-tabs', 'value')],
               [State('session-id', 'children')])
-def render_other_tabs(tab, session_id):
+def render_error_tabs(tab, session_id):
     if tab == 'tab-matrix':
-        return html.Div([
-            html.Img(src='assets/confusion-matrix.png',
-                     style={
-                         "width": "100%",
-                         "padding": "5px"
-                     })
-        ])
+        return html.Div()
     elif tab == 'tab-det':
         return html.Div([dcc.Graph(figure=viz.mock_det())])
 
