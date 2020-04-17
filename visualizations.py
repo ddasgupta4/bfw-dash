@@ -2,11 +2,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-"""
-This is just stuff I copied and pasted from Alice's Google Collab - it can all be scrapped
-
-"""
-
 
 def relabel(BFWdf):
     BFWdf.label = BFWdf.label.astype(int)
