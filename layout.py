@@ -75,9 +75,7 @@ data_tabs = html.Div([
         dcc.Tab(label='Data Table', value='tab-frame'),
         dcc.Tab(label='Data Summary', value='tab-summary'),
     ], style={"margin-top": "5px"}),
-    html.Div(id='tabs-content-data',
-             style={"height": "300px"})],
-    style={"height": "365px"})
+    html.Div(id='tabs-content-data')])
 
 error_tabs = html.Div([
     dcc.Tabs(id="error-tabs", value='tab-error', children=[
@@ -85,14 +83,14 @@ error_tabs = html.Div([
         dcc.Tab(label='DET Curves', value='tab-det'),
     ]),
     html.Div(id='tabs-content-error',
-             style={"height": "300px"})],
-    style={"height": "365px"})
+             style={"width": "100%"})
+])
 
-plot_tabs = html.Div([
-    dcc.Tabs(id="plot-tabs", value='tab-graphs', children=[
+dist_tabs = html.Div([
+    dcc.Tabs(id="dist-tabs", value='tab-graphs', children=[
         dcc.Tab(label='Violin Plots', value='tab-violin'),
         dcc.Tab(label='Box Plots', value='tab-box'),
         dcc.Tab(label='SDM Curves', value='tab-sdm'),
     ]),
-    html.Div(id='tabs-content-plots', style={"height": "300px"})
-], style={"height": "300px"})
+    html.Div(id='tabs-content-dist')
+])

@@ -63,7 +63,23 @@ data_tabs = layout.data_tabs
 
 error_tabs = layout.error_tabs
 
-plot_tabs = layout.plot_tabs
+dist_tabs = layout.dist_tabs
+
+hidden_error = html.Div(
+    children=[
+        html.Details(
+            [html.Summary("Error Plots"),
+             error_tabs]
+        )
+    ], style={"width": "100%"})
+
+hidden_dist = html.Div(
+    children=[
+        html.Details(
+            [html.Summary("Score Distribution Plots"),
+             dist_tabs]
+        )
+    ], style={"width": "100%"})
 
 # APP LAYOUT
 
@@ -73,22 +89,21 @@ app.layout = html.Div(
 
         html.Div(className="row",
                  children=[
-                     html.Div(className="six columns",
-                              children=[
-                                  overview, data_tabs],
-                              style={"width": "25%",
-                                     "padding": "5px"}),
-                     html.Div(className="six columns",
-                              children=[
-                                  error_tabs,
-                                  plot_tabs],
-                              style={"width": "75%",
-                                     "padding": "5px"}
-                              )],
-                 style={"margin": "auto",
-                        "height": "800px"}),
+                     html.Div(children=[
+                         overview,
+                         data_tabs],
+                         style={"width": "25%",
+                                "padding": "5px"}),
+                     html.Div(children=[
+                         hidden_dist,
+                         hidden_error],
+                         style={"width": "75%",
+                                "padding": "5px"}
+                     )],
+                 style={"margin": "auto"}),
 
-        html.Div(session_id, id='session-id', style={'display': 'none'})
+        html.Div(now, id='session-id', style={'display': 'none'})
+
     ], style={"padding": "5px"})
 
 
@@ -186,8 +201,8 @@ def update_table(contents, filename, session_id):
     return data_table
 
 
-@app.callback(Output('tabs-content-plots', 'children'),
-              [Input('plot-tabs', 'value')])
+@app.callback(Output('tabs-content-dist', 'children'),
+              [Input('dist-tabs', 'value')])
 def render_dist_tabs(tab):
     try:
         df = read_dataframe(now)
