@@ -13,7 +13,15 @@ Python executable from the virtualenv.
 
 ## TODO
 
-- Fix layout to emphasize graphs
-- Move data table section to take up less space
-- Fix callback error
-- Add global filters for data
+- [x] Fix layout to emphasize graphs
+- [x] Move data table section to take up less space
+- [x] Fix callback error
+- [x] Configure global filters for data
+    -[ ] Add more filters (age, subgroup, etc.)
+    -[ ] Fix filter style
+- [ ] Create more visualizations
+    -[ ] ROC Curve
+    -[ ] Summary table
+    -[ ] Confusion Matrix
+    -[ ] DET Curves 
+- [ ] Make format of SDM curves consistent with Violin and Box
