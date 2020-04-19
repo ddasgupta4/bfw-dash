@@ -65,6 +65,24 @@ error_tabs = layout.error_tabs
 
 dist_tabs = layout.dist_tabs
 
+ethnicity_filter = dcc.Dropdown(
+    options=[
+        {'label': 'Asian', 'value': 'A'},
+        {'label': 'Black', 'value': 'B'},
+        {'label': 'Indian', 'value': 'I'},
+        {'label': 'White', 'value': 'W'}
+    ],
+    value=['A', 'B', 'I', 'W'],
+    multi=True)
+
+gender_filter = dcc.Dropdown(
+    options=[
+        {'label': 'Male', 'value': 'M'},
+        {'label': 'Female', 'value': 'F'}
+    ],
+    value=['M', 'F'],
+    multi=True)
+
 hidden_error = html.Div(
     children=[
         html.Details(
@@ -133,21 +151,20 @@ def parse_table(contents, filename):
     return study_data
 
 
-def write_dataframe(session_id, df, filename="bfw-v0.1.5-datatable.csv"):
+def write_dataframe(df, filename="bfw-v0.1.5-datatable.csv"):
     '''
     Write dataframe to disk, for now just as CSV
     For now do not preserve or distinguish filename;
     user has one file at once.
     '''
 
-    # filename = session_id + filename
     print('Calling write_dataframe')
     file = os.path.join(filecache_dir, now)
     df.to_pickle(file)
 
 
 @cache.memoize()
-def read_dataframe(now):
+def read_dataframe(now, gender, ethnicity):
     '''
     Read dataframe from disk, for now just as CSV
     '''
@@ -155,6 +172,8 @@ def read_dataframe(now):
     print('Calling read_dataframe')
     file = os.path.join(filecache_dir, now)
     df = pd.read_pickle(file)
+    df = df[df.e1.isin(ethnicity)]
+    df = df[df.g1.isin(gender)]
     print('** Reading data from disk **')
     return df
 
@@ -162,19 +181,23 @@ def read_dataframe(now):
 @app.callback(
     Output('data-table-div', 'children'),
     [Input('upload-data', 'contents'),
-     Input('upload-data', 'filename')],
+     Input('upload-data', 'filename'),
+     Input('gender-filter', 'value'),
+     Input('ethnicity-filter', 'value')],
     [State('session-id', 'children')])
-def update_table(contents, filename, session_id):
+def update_table(contents, filename, gender, ethnicity, session_id):
     # write contents to file
     print('Calling update table')
+    print(gender)
+    print(ethnicity)
     try:
-        df = read_dataframe(now)
-    except Exception as e:
-        print(e)
-        df = parse_table(contents, filename).sample(5000)
-        write_dataframe(session_id, df, filename)
+        df = read_dataframe(now, gender, ethnicity)
+        print('Read existing cache')
+    except:
+        write_dataframe(parse_table(contents, filename).sample(5000), filename)
+        df = read_dataframe(now, gender, ethnicity)
 
-    df = df.sample(50)[['id1', 'id2', 'att1', 'att2', 'Tag', 'score', 'subgroup']]
+    df = df.sample(50, random_state=1)[['id1', 'id2', 'att1', 'att2', 'Tag', 'score', 'subgroup']]
     df['score'] = pd.Series(["{0:.2f}%".format(val * 100) for val in df['score']], index=df.index)
 
     data_table = dash_table.DataTable(
@@ -202,10 +225,12 @@ def update_table(contents, filename, session_id):
 
 
 @app.callback(Output('tabs-content-dist', 'children'),
-              [Input('dist-tabs', 'value')])
-def render_dist_tabs(tab):
+              [Input('dist-tabs', 'value'),
+               Input('gender-filter', 'value'),
+               Input('ethnicity-filter', 'value')])
+def render_dist_tabs(tab, gender, ethnicity):
     try:
-        df = read_dataframe(now)
+        df = read_dataframe(now, gender, ethnicity)
     except Exception as e:
         print(e)
 

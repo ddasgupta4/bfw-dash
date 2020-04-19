@@ -85,14 +85,6 @@ def mock_det():
 
 
 def sdm_curve(data):
-    new_labels = ['Imposter', 'Genuine']
-    data.label = data.label.astype(int)
-    data['Tag'] = data.label
-    data.loc[data.label == 0, 'Tag'] = new_labels[0]
-    data.loc[data.label == 1, 'Tag'] = new_labels[1]
-
-    # %%#%%
-
     fig = go.Figure()
 
     fig.add_trace(go.Violin(x=data['subgroup'][data['Tag'] == 'Imposter'],

@@ -14,36 +14,70 @@ upload_data = html.Div([dcc.Upload(
     ]),
     style={
         'borderWidth': '1px',
-        'borderStyle': 'dashed',
+        'borderStyle': 'solid',
         'borderRadius': '5px',
         'textAlign': 'center',
         'margin': 'auto',
-        'margin-top': '5px',
+        'margin-top': '18px',
         'padding': '5px',
         'width': '90%',
-        'height': '60px'
+        'height': '50px'
     },
     multiple=False
 ),
     html.Div(id='data-table-div', style={'display': 'none'})
     , ])
 
+ethnicity_filter = dcc.Dropdown(
+    id="ethnicity-filter",
+    options=[
+        {'label': 'Asian', 'value': 'A'},
+        {'label': 'Black', 'value': 'B'},
+        {'label': 'Indian', 'value': 'I'},
+        {'label': 'White', 'value': 'W'}
+    ],
+    value=['A', 'B', 'I', 'W'],
+    multi=True)
+
+gender_filter = dcc.Dropdown(
+    id="gender-filter",
+    options=[
+        {'label': 'Male', 'value': 'M'},
+        {'label': 'Female', 'value': 'F'}
+    ],
+    value=['M', 'F'],
+    multi=True)
+
 overview = html.Div(children=[html.Img(src='assets/bfw-logo.png',
                                        style={
                                            "width": "75%"
                                        }),
                               html.Div(children=[
-                                  html.Div(upload_data, style={"margin-top": "30px"})
+                                  html.Div(upload_data)
                               ],
                                   style={
-                                      "height": "40%",
+                                      "height": "25%",
                                       "width": "90%",
                                       "background-color": "#F3F4F9",
                                       "margin": "auto",
+                                      "margin-top": "5px",
+                                      "margin-bottom": "5px",
                                       "padding": "10px",
-                                  })
+                                  }),
+                              html.Div(ethnicity_filter, style={
+                                  "width": "90%",
+                                  "margin": "auto",
+                                  "margin-top": "5px",
+                                  "margin-bottom": "5px"
+                              }),
+                              html.Div(gender_filter, style={
+                                  "width": "90%",
+                                  "margin": "auto",
+                                  "margin-top": "5px",
+                                  "margin-bottom": "5px"
+                              })
                               ],
-                    style={"height": "360px",
+                    style={"height": "400px",
                            "backgroundColor": "white",
                            "padding": "5px",
                            "border": "1px solid #f8f9fa",
