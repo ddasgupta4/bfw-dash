@@ -120,9 +120,10 @@ header = dbc.NavbarSimple(
         dbc.NavItem(dbc.NavLink("Dashboard", href="#")),
         dbc.DropdownMenu(
             children=[
-                dbc.DropdownMenuItem("More pages", header=True),
-                dbc.DropdownMenuItem("Documentation (Create new webpage for it)", href="#"),
-                dbc.DropdownMenuItem("Report (Embed Link)", href="#"),
+                dbc.DropdownMenuItem("Additional Resources", header=True),
+                dbc.DropdownMenuItem("README", href="#"),
+                dbc.DropdownMenuItem("Report", href="#"),
+                dbc.DropdownMenuItem("GitHub", href="#")
             ],
             nav=True,
             in_navbar=True,

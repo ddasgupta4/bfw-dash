@@ -3,7 +3,6 @@ import datetime
 import glob
 import io
 import os
-import uuid
 
 import dash
 import dash_core_components as dcc
@@ -56,8 +55,6 @@ header = layout.header
 
 upload_data = layout.upload_data
 
-session_id = str(uuid.uuid4())
-
 now = str(datetime.datetime.now())
 
 overview = layout.overview
@@ -85,7 +82,6 @@ hidden_dist = html.Div(
     ], style={"width": "100%"})
 
 # APP LAYOUT
-
 app.layout = html.Div(
     children=[
         html.Div(header),
@@ -111,7 +107,6 @@ app.layout = html.Div(
 
 
 # CALLBACKS
-# Callback to generate study data
 def parse_table(contents):
     '''
     Parse uploaded tabular file and return dataframe.
@@ -119,7 +114,7 @@ def parse_table(contents):
     If no data is uploaded the default dataset is read
     '''
 
-    print('Calling parse_table')
+    # print('Calling parse_table')
 
     default_study_data = "data/bfw-v0.1.5-datatable.csv"
 
@@ -132,7 +127,7 @@ def parse_table(contents):
 
     try:
         study_data = viz.relabel(study_data)
-        print("Relabeled data")
+        # print("Relabeled data")
     except Exception as e:
         print("Invalid data format")
 
@@ -141,9 +136,9 @@ def parse_table(contents):
 
 @cache.memoize()
 def write_dataframe(df, filename):
-    print('Calling write_dataframe')
+    # print('Calling write_dataframe')
     file = os.path.join(filecache_dir, filename)
-    print('New cache located at', file)
+    # print('New cache located at', file)
     df.to_pickle(file)
 
 
@@ -151,11 +146,11 @@ def read_dataframe(filename, gender=['M', 'F'], ethnicity=['A', 'B', 'I', 'W']):
     '''
     Read dataframe from disk as PKL
     Takes values from filters to read only whats selected
-    This function is called everytime the data is read
+    This function is called every time the data is read
         i.e graphs, data table
     '''
 
-    print('Calling read_dataframe')
+    # print('Calling read_dataframe')
     file = os.path.join(filecache_dir, filename)
     df = pd.read_pickle(file)
     df = df[df.e1.isin(ethnicity)]
@@ -177,20 +172,20 @@ def update_table(contents, filename, last_modified):
 
     Need to adjust this so if the user uploads a new file it recognizes and gets a new timestamp or overwrites
     """
-    print('Calling update table')
-    print('Read file', filename)
+    # print('Calling update table')
+    # print('Read file', filename)
 
     if last_modified is None:
         filename = "bfw-v0.1.5-datatable.csv"
 
     file = now + os.path.splitext(filename)[0]
 
-    print('Uploaded file', file)
+    # print('Uploaded file', file)
 
     try:
         # Checks to see if file has already been uploaded
         read_dataframe(file)
-        print('Read existing cache', file)
+        # print('Read existing cache', file)
     except:
         write_dataframe(parse_table(contents).sample(5000), file)
 
