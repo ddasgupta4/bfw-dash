@@ -27,3 +27,4 @@ Python executable from the virtualenv.
 - [ ] Make format of SDM curves consistent with Violin and Box
 - [ ] Make all tabs/callbacks trigger after upload data
     - Right now uploading new data works, but the datatable/graphs don't update unless they're clicked
+- [ ] Add instructions, github, report to "more" in header
