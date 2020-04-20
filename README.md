@@ -28,3 +28,6 @@ Python executable from the virtualenv.
 - [ ] Make all tabs/callbacks trigger after upload data
     - Right now uploading new data works, but the datatable/graphs don't update unless they're clicked
 - [ ] Add instructions, github, report to "more" in header
+- [ ] Add warning/error message when data is invalid
+- [ ] Add more styling to CSS to avoid inline styling in app.py
+    - Reduce clutter and increase readability
