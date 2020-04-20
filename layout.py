@@ -1,16 +1,20 @@
+import datetime
+
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
+
+now = str(datetime.datetime.now())
 
 upload_data = html.Div([dcc.Upload(
     id='upload-data',
     children=html.Div([
         'Drag and Drop or ',
         html.A('Select File'),
-        html.P("default: bfw-v0.1.5-datatable",
-               style={
-                   "fontSize": "10px"
-               })
+        html.Div(id='output-data-upload',
+                 style={
+                     "fontSize": "10px"
+                 })
     ]),
     style={
         'borderWidth': '1px',
@@ -25,13 +29,8 @@ upload_data = html.Div([dcc.Upload(
     },
     multiple=False
 ),
-    html.Div(id='data-table-div', style={'display': 'none'})
-    , ])
-
-# ['fold', 'p1', 'p2', 'label', 'id1', 'id2', 'att1', 'att2', 'vgg16',
-#        'resnet50', 'senet50', 'a1', 'a2', 'g1', 'g2', 'e1', 'e2', 'score',
-#        'subgroup', 'Tag']
-
+    # html.Div(id='output-data-upload'),
+])
 
 column_filter = dcc.Dropdown(
     id="column-filter",

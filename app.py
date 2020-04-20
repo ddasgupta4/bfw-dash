@@ -1,5 +1,6 @@
 import base64
 import datetime
+import glob
 import io
 import os
 import uuid
@@ -67,24 +68,6 @@ error_tabs = layout.error_tabs
 
 dist_tabs = layout.dist_tabs
 
-ethnicity_filter = dcc.Dropdown(
-    options=[
-        {'label': 'Asian', 'value': 'A'},
-        {'label': 'Black', 'value': 'B'},
-        {'label': 'Indian', 'value': 'I'},
-        {'label': 'White', 'value': 'W'}
-    ],
-    value=['A', 'B', 'I', 'W'],
-    multi=True)
-
-gender_filter = dcc.Dropdown(
-    options=[
-        {'label': 'Male', 'value': 'M'},
-        {'label': 'Female', 'value': 'F'}
-    ],
-    value=['M', 'F'],
-    multi=True)
-
 hidden_error = html.Div(
     children=[
         html.Details(
@@ -137,7 +120,7 @@ def parse_table(contents, filename):
     print('Calling parse_table')
 
     default_study_data = "data/bfw-v0.1.5-datatable.csv"
-
+    # print(contents)
     if contents is None:
         study_data = pd.read_csv(default_study_data)
     else:
@@ -153,19 +136,21 @@ def parse_table(contents, filename):
     return study_data
 
 
-def write_dataframe(df, filename="bfw-v0.1.5-datatable.csv"):
+def write_dataframe(df, filename):
     '''
     Write dataframe to disk, for now just as CSV
     Filename is simply the time the data is intialized
     '''
-
     print('Calling write_dataframe')
-    file = os.path.join(filecache_dir, now)
+
+    file = os.path.join(filecache_dir, filename)
+
+    print('New cache located at', file)
     df.to_pickle(file)
 
 
 @cache.memoize()
-def read_dataframe(now, gender, ethnicity):
+def read_dataframe(filename, gender=['M', 'F'], ethnicity=['A', 'B', 'I', 'W']):
     '''
     Read dataframe from disk as PKL
     Takes values from filters to read only whats selected
@@ -174,23 +159,19 @@ def read_dataframe(now, gender, ethnicity):
     '''
 
     print('Calling read_dataframe')
-    file = os.path.join(filecache_dir, now)
+    file = os.path.join(filecache_dir, filename)
     df = pd.read_pickle(file)
     df = df[df.e1.isin(ethnicity)]
     df = df[df.g1.isin(gender)]
-    print('** Reading data from disk **')
     return df
 
 
 @app.callback(
-    Output('data-table-div', 'children'),
-    [Input('upload-data', 'contents'),
-     Input('upload-data', 'filename'),
-     Input('gender-filter', 'value'),
-     Input('ethnicity-filter', 'value'),
-     Input('column-filter', 'value')],
-    [State('session-id', 'children')])
-def update_table(contents, filename, gender, ethnicity, columns, session_id):
+    Output('output-data-upload', 'children'),
+    [Input('upload-data', 'contents')],
+    [State('upload-data', 'filename'),
+     State('upload-data', 'last_modified')])
+def update_table(contents, filename, last_modified):
     """
     This is the first function called when the dashboard opens
     Takes in data from upload or uses default
@@ -200,12 +181,41 @@ def update_table(contents, filename, gender, ethnicity, columns, session_id):
     Need to adjust this so if the user uploads a new file it recognizes and gets a new timestamp or overwrites
     """
     print('Calling update table')
+    # print('last modified', last_modified)
+
+    print('Read file', filename)
+
+    if filename is None:
+        filename = "bfw-v0.1.5-datatable.csv"
+
+    print(os.path.splitext(filename))
+
+    file = now + os.path.splitext(filename)[0]
+
+    print('Uploaded file', file)
+
     try:
-        df = read_dataframe(now, gender, ethnicity)
-        print('Read existing cache')
+        read_dataframe(file)
+        print('Read existing cache', file)
     except:
-        write_dataframe(parse_table(contents, filename).sample(5000), filename)
-        df = read_dataframe(now, gender, ethnicity)
+        write_dataframe(parse_table(contents, filename).sample(5000), file)
+
+    return filename
+
+
+@app.callback(
+    Output('data-table-div', 'children'),
+    [Input('gender-filter', 'value'),
+     Input('ethnicity-filter', 'value'),
+     Input('column-filter', 'value')])
+def print_table(gender, ethnicity, columns):
+    cache_files = glob.glob(filecache_dir + '/*')  # gets all files from cache-directory
+    latest_file = max(cache_files, key=os.path.getctime)  # calls most recent cache to be read
+    print('Data table file:', latest_file)
+    try:
+        df = read_dataframe(latest_file, gender, ethnicity)
+    except Exception as e:
+        print('Uploading data...')
 
     df = df.sample(50, random_state=1)[columns]
     df['score'] = pd.Series(["{0:.2f}%".format(val * 100) for val in df['score']], index=df.index)
@@ -237,12 +247,14 @@ def update_table(contents, filename, gender, ethnicity, columns, session_id):
 @app.callback(Output('tabs-content-dist', 'children'),
               [Input('dist-tabs', 'value'),
                Input('gender-filter', 'value'),
-               Input('ethnicity-filter', 'value')])
-def render_dist_tabs(tab, gender, ethnicity):
-    try:
-        df = read_dataframe(now, gender, ethnicity)
-    except Exception as e:
-        print(e)
+               Input('ethnicity-filter', 'value')],
+              [State('session-id', 'children')])
+def render_dist_tabs(tab, gender, ethnicity, session_id):
+    cache_files = glob.glob(filecache_dir + '/*')  # gets all files from cache-directory
+    latest_file = max(cache_files, key=os.path.getctime)  # calls most recent cache to be read
+    print('Dist plots file:', latest_file)
+
+    df = read_dataframe(latest_file, gender, ethnicity)
 
     if tab == 'tab-violin':
         return html.Div([
