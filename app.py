@@ -32,6 +32,8 @@ app = dash.Dash(__name__,
                 external_scripts=external_scripts,
                 server=server)
 
+app.config.suppress_callback_exceptions = True
+
 default_study_data = "data/bfw-v0.1.5-datatable.csv"
 
 # Cache definition
@@ -154,8 +156,7 @@ def parse_table(contents, filename):
 def write_dataframe(df, filename="bfw-v0.1.5-datatable.csv"):
     '''
     Write dataframe to disk, for now just as CSV
-    For now do not preserve or distinguish filename;
-    user has one file at once.
+    Filename is simply the time the data is intialized
     '''
 
     print('Calling write_dataframe')
@@ -166,7 +167,10 @@ def write_dataframe(df, filename="bfw-v0.1.5-datatable.csv"):
 @cache.memoize()
 def read_dataframe(now, gender, ethnicity):
     '''
-    Read dataframe from disk, for now just as CSV
+    Read dataframe from disk as PKL
+    Takes values from filters to read only whats selected
+    This function is called everytime the data is read
+        i.e graphs, data table
     '''
 
     print('Calling read_dataframe')
@@ -183,13 +187,19 @@ def read_dataframe(now, gender, ethnicity):
     [Input('upload-data', 'contents'),
      Input('upload-data', 'filename'),
      Input('gender-filter', 'value'),
-     Input('ethnicity-filter', 'value')],
+     Input('ethnicity-filter', 'value'),
+     Input('column-filter', 'value')],
     [State('session-id', 'children')])
-def update_table(contents, filename, gender, ethnicity, session_id):
-    # write contents to file
+def update_table(contents, filename, gender, ethnicity, columns, session_id):
+    """
+    This is the first function called when the dashboard opens
+    Takes in data from upload or uses default
+    Creates pkl file of DF to be accessed
+    Also takes in values from filters
+
+    Need to adjust this so if the user uploads a new file it recognizes and gets a new timestamp or overwrites
+    """
     print('Calling update table')
-    print(gender)
-    print(ethnicity)
     try:
         df = read_dataframe(now, gender, ethnicity)
         print('Read existing cache')
@@ -197,7 +207,7 @@ def update_table(contents, filename, gender, ethnicity, session_id):
         write_dataframe(parse_table(contents, filename).sample(5000), filename)
         df = read_dataframe(now, gender, ethnicity)
 
-    df = df.sample(50, random_state=1)[['id1', 'id2', 'att1', 'att2', 'Tag', 'score', 'subgroup']]
+    df = df.sample(50, random_state=1)[columns]
     df['score'] = pd.Series(["{0:.2f}%".format(val * 100) for val in df['score']], index=df.index)
 
     data_table = dash_table.DataTable(
@@ -253,8 +263,8 @@ def render_dist_tabs(tab, gender, ethnicity):
               [State('session-id', 'children')])
 def render_data_tabs(tab, session_id):
     if tab == 'tab-frame':
-        return html.Div([
-            html.Div(id='data-table-div')])
+        return html.Div([layout.column_filter,
+                         html.Div(id='data-table-div')])
     elif tab == 'tab-summary':
         return html.Div()
 

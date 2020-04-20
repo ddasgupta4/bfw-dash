@@ -28,6 +28,38 @@ upload_data = html.Div([dcc.Upload(
     html.Div(id='data-table-div', style={'display': 'none'})
     , ])
 
+# ['fold', 'p1', 'p2', 'label', 'id1', 'id2', 'att1', 'att2', 'vgg16',
+#        'resnet50', 'senet50', 'a1', 'a2', 'g1', 'g2', 'e1', 'e2', 'score',
+#        'subgroup', 'Tag']
+
+
+column_filter = dcc.Dropdown(
+    id="column-filter",
+    options=[
+        {'label': 'Fold', 'value': 'fold'},
+        {'label': 'p1', 'value': 'p1'},
+        {'label': 'p2', 'value': 'p2'},
+        {'label': 'Label', 'value': 'label'},
+        {'label': 'id1', 'value': 'id1'},
+        {'label': 'id2', 'value': 'id2'},
+        {'label': 'att1', 'value': 'att1'},
+        {'label': 'att2', 'value': 'att2'},
+        {'label': 'vgg16', 'value': 'vgg16'},
+        {'label': 'resnet50', 'value': 'resnet50'},
+        {'label': 'senet50', 'value': 'senet50'},
+        {'label': 'a1', 'value': 'a1'},
+        {'label': 'a2', 'value': 'a2'},
+        {'label': 'g1', 'value': 'g1'},
+        {'label': 'g2', 'value': 'g2'},
+        {'label': 'e1', 'value': 'e1'},
+        {'label': 'e2', 'value': 'e2'},
+        {'label': 'Score', 'value': 'score'},
+        {'label': 'Subgroup', 'value': 'subgroup'},
+        {'label': 'Tag', 'value': 'Tag'}
+    ],
+    value=['id1', 'id2', 'att1', 'att2', 'Tag', 'score', 'subgroup'],
+    multi=True)
+
 ethnicity_filter = dcc.Dropdown(
     id="ethnicity-filter",
     options=[
