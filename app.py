@@ -112,15 +112,17 @@ app.layout = html.Div(
 
 # CALLBACKS
 # Callback to generate study data
-def parse_table(contents, filename):
+def parse_table(contents):
     '''
     Parse uploaded tabular file and return dataframe.
+    Reads uploaded data to dataframe
+    If no data is uploaded the default dataset is read
     '''
 
     print('Calling parse_table')
 
     default_study_data = "data/bfw-v0.1.5-datatable.csv"
-    # print(contents)
+
     if contents is None:
         study_data = pd.read_csv(default_study_data)
     else:
@@ -130,6 +132,7 @@ def parse_table(contents, filename):
 
     try:
         study_data = viz.relabel(study_data)
+        print("Relabeled data")
     except Exception as e:
         print("Invalid data format")
 
@@ -137,19 +140,14 @@ def parse_table(contents, filename):
 
 
 def write_dataframe(df, filename):
-    '''
-    Write dataframe to disk, for now just as CSV
-    Filename is simply the time the data is intialized
-    '''
     print('Calling write_dataframe')
-
     file = os.path.join(filecache_dir, filename)
-
     print('New cache located at', file)
-    df.to_pickle(file)
+    df.to_pickle(file) \
+ \
+    @cache.memoize()
 
 
-@cache.memoize()
 def read_dataframe(filename, gender=['M', 'F'], ethnicity=['A', 'B', 'I', 'W']):
     '''
     Read dataframe from disk as PKL
@@ -181,24 +179,21 @@ def update_table(contents, filename, last_modified):
     Need to adjust this so if the user uploads a new file it recognizes and gets a new timestamp or overwrites
     """
     print('Calling update table')
-    # print('last modified', last_modified)
-
     print('Read file', filename)
 
-    if filename is None:
+    if last_modified is None:
         filename = "bfw-v0.1.5-datatable.csv"
-
-    print(os.path.splitext(filename))
 
     file = now + os.path.splitext(filename)[0]
 
     print('Uploaded file', file)
 
     try:
+        # Checks to see if file has already been uploaded
         read_dataframe(file)
         print('Read existing cache', file)
     except:
-        write_dataframe(parse_table(contents, filename).sample(5000), file)
+        write_dataframe(parse_table(contents).sample(5000), file)
 
     return filename
 
@@ -211,14 +206,10 @@ def update_table(contents, filename, last_modified):
 def print_table(gender, ethnicity, columns):
     cache_files = glob.glob(filecache_dir + '/*')  # gets all files from cache-directory
     latest_file = max(cache_files, key=os.path.getctime)  # calls most recent cache to be read
-    print('Data table file:', latest_file)
-    try:
-        df = read_dataframe(latest_file, gender, ethnicity)
-    except Exception as e:
-        print('Uploading data...')
 
-    df = df.sample(50, random_state=1)[columns]
+    df = read_dataframe(latest_file, gender, ethnicity)
     df['score'] = pd.Series(["{0:.2f}%".format(val * 100) for val in df['score']], index=df.index)
+    df = df.sample(50, random_state=1)[columns]
 
     data_table = dash_table.DataTable(
         id='table',
@@ -237,8 +228,7 @@ def print_table(gender, ethnicity, columns):
             'fontSize': 10,
             'font-family': 'arial'
         },
-        sort_action='native',
-        filter_action='native'
+        sort_action='native'
     )
 
     return data_table
@@ -247,12 +237,10 @@ def print_table(gender, ethnicity, columns):
 @app.callback(Output('tabs-content-dist', 'children'),
               [Input('dist-tabs', 'value'),
                Input('gender-filter', 'value'),
-               Input('ethnicity-filter', 'value')],
-              [State('session-id', 'children')])
-def render_dist_tabs(tab, gender, ethnicity, session_id):
+               Input('ethnicity-filter', 'value')])
+def render_dist_tabs(tab, gender, ethnicity):
     cache_files = glob.glob(filecache_dir + '/*')  # gets all files from cache-directory
     latest_file = max(cache_files, key=os.path.getctime)  # calls most recent cache to be read
-    print('Dist plots file:', latest_file)
 
     df = read_dataframe(latest_file, gender, ethnicity)
 
