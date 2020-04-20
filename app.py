@@ -139,13 +139,12 @@ def parse_table(contents):
     return study_data
 
 
+@cache.memoize()
 def write_dataframe(df, filename):
     print('Calling write_dataframe')
     file = os.path.join(filecache_dir, filename)
     print('New cache located at', file)
-    df.to_pickle(file) \
- \
-    @cache.memoize()
+    df.to_pickle(file)
 
 
 def read_dataframe(filename, gender=['M', 'F'], ethnicity=['A', 'B', 'I', 'W']):
