@@ -133,7 +133,7 @@ def read_dataframe(filename, gender=['M', 'F'], ethnicity=['A', 'B', 'I', 'W']):
 
     file = os.path.join(filecache_dir, filename)
 
-    print("Reading file:", file)
+    # print("Reading file:", file)
 
     df = pd.read_pickle(file)
     df = df[df.e1.isin(ethnicity)]
@@ -156,10 +156,11 @@ def update_table(contents, filename, last_modified):
     Need to adjust this so if the user uploads a new file it recognizes and gets a new timestamp or overwrites
     """
 
-    if last_modified is None:
+    if last_modified is None:  # initializes dashboard with default data if it has just been opened
+        file = "default"
         filename = "bfw-v0.1.5-datatable.csv"
-
-    file = now + os.path.splitext(filename)[0]
+    else:
+        file = now + os.path.splitext(filename)[0]
 
     print('Uploaded file:', file)
 
@@ -179,15 +180,19 @@ def update_table(contents, filename, last_modified):
     Output('data-table-div', 'children'),
     [Input('gender-filter', 'value'),
      Input('ethnicity-filter', 'value'),
-     Input('column-filter', 'value')],
+     Input('column-filter', 'value'),
+     Input('upload-data', 'contents')],
     [State('upload-data', 'last_modified')])
-def print_table(gender, ethnicity, columns, last_modified):
-    cache_files = glob.glob(filecache_dir + '/*')  # get a list all files from cache-directory
-    latest_file = max(cache_files, key=os.path.getctime)  # calls most recent cache to be read
+def print_table(gender, ethnicity, columns, contents, last_modified):
+    if last_modified is None:
+        file = "default"
+    else:
+        cache_files = glob.glob(filecache_dir + '/*')  # gets all files from cache-directory
+        file = max(cache_files, key=os.path.getctime)  # calls most recent cache to be read
 
-    print("Data Table Data:", latest_file)
+    print("Data Table Data:", file)
 
-    df = read_dataframe(latest_file, gender, ethnicity)
+    df = read_dataframe(file, gender, ethnicity)
     df['score'] = pd.Series(["{0:.2f}%".format(val * 100) for val in df['score']], index=df.index)
     df = df.sample(50, random_state=1)[columns]
 
@@ -218,14 +223,18 @@ def print_table(gender, ethnicity, columns, last_modified):
               [Input('dist-tabs', 'value'),
                Input('gender-filter', 'value'),
                Input('ethnicity-filter', 'value'),
-               Input('upload-data', 'last_modified')])
-def render_dist_tabs(tab, gender, ethnicity, n_clicks):
-    cache_files = glob.glob(filecache_dir + '/*')  # gets all files from cache-directory
-    latest_file = max(cache_files, key=os.path.getctime)  # calls most recent cache to be read
+               Input('upload-data', 'contents')],
+              [State('upload-data', 'last_modified')])
+def render_dist_tabs(tab, gender, ethnicity, contents, last_modified):
+    if last_modified is None:
+        file = "default"
+    else:
+        cache_files = glob.glob(filecache_dir + '/*')  # gets all files from cache-directory
+        file = max(cache_files, key=os.path.getctime)  # calls most recent cache to be read
 
-    print("Distribution Plots Data:", latest_file)
+    print("Distribution Plots Data:", file)
 
-    df = read_dataframe(latest_file, gender, ethnicity)
+    df = read_dataframe(file, gender, ethnicity)
 
     if tab == 'tab-violin':
         return html.Div([
