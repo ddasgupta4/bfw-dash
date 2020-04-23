@@ -178,9 +178,9 @@ data_tabs = html.Div([
 
 error_tabs = html.Div([
     dcc.Tabs(id="error-tabs", value='tab-error', children=[
-        dcc.Tab(label='Confusion Matrix', value='tab-matrix', id='tab-matrix'),
         dcc.Tab(label='Detection Error Tradeoff (DET) Curves', value='tab-det', id='tab-det'),
         dcc.Tab(label='ROC Curves', value='tab-roc', id='tab-roc'),
+        dcc.Tab(label='Confusion Matrix', value='tab-matrix', id='tab-matrix'),
     ]),
     dbc.Tooltip(
         "Explain what confusion matrix is",

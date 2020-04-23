@@ -289,6 +289,19 @@ def render_error_tabs(tab, gender, ethnicity, score, contents, last_modified):
             ], style={"margin": "0px",
                       "padding": "0px"}
         )
+    elif tab == 'tab-roc':
+        return html.Div(
+            [
+                html.Div([
+                    dcc.Graph(figure=viz.roc_ethnicity(df, score),
+                              style={"display": "inline-block", "width": "50%"}),
+                    dcc.Graph(figure=viz.roc_gender(df, score),
+                              style={"display": "inline-block", "width": "50%"})
+                ]),
+                dcc.Graph(figure=viz.roc_subgroup(df, score))
+            ], style={"margin": "0px",
+                      "padding": "0px"}
+        )
 
 
 if __name__ == '__main__':
