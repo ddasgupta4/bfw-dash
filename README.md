@@ -1,6 +1,5 @@
 # bfw-dash
 
-[! https://img.shields.io/github/license/ddasgupta4/bfw-dash] [! https://img.shields.io/badge/Made%20at-Starschema-red]
 A short description of the project.
 
 
