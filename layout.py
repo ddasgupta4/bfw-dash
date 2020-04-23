@@ -4,17 +4,40 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 
+# import tooltips
+
 now = str(datetime.datetime.now())
+
+header = dbc.NavbarSimple(
+    children=[
+        dbc.NavItem(dbc.NavLink("Dashboard", href="#")),
+        dbc.DropdownMenu(
+            children=[
+                dbc.DropdownMenuItem("Additional Resources", header=True),
+                dbc.DropdownMenuItem("README", href="#"),
+                dbc.DropdownMenuItem("Report", href="#"),
+                dbc.DropdownMenuItem("GitHub", href="https://github.com/ddasgupta4/bfw-dash")
+            ],
+            nav=True,
+            in_navbar=True,
+            label="More",
+        ),
+    ],
+    brand="'Fairness' Evaluation for Facial Recognition Technology",
+    brand_href="#",
+    color="primary",
+    dark=True,
+    brand_style={"text-align": "left"}
+)
+
+# LEFT PANEL
 
 upload_data = html.Div([dcc.Upload(
     id='upload-data',
     children=html.Div([
         'Drag and Drop or ',
         html.A('Select File'),
-        html.Div(id='output-data-upload',
-                 style={
-                     "fontSize": "10px"
-                 })
+        html.Div(id='output-data-upload', style={"fontSize": "10px"})
     ]),
     style={
         'borderWidth': '1px',
@@ -22,14 +45,13 @@ upload_data = html.Div([dcc.Upload(
         'borderRadius': '5px',
         'textAlign': 'center',
         'margin': 'auto',
-        'margin-top': '18px',
+        'margin-top': '20px',
         'padding': '5px',
         'width': '90%',
         'height': '50px'
     },
     multiple=False
 ),
-    # html.Div(id='output-data-upload'),
 ])
 
 column_filter = dcc.Dropdown(
@@ -68,7 +90,8 @@ ethnicity_filter = dcc.Dropdown(
         {'label': 'White', 'value': 'W'}
     ],
     value=['A', 'B', 'I', 'W'],
-    multi=True)
+    multi=True,
+    style={"margin-top": "5px"})
 
 gender_filter = dcc.Dropdown(
     id="gender-filter",
@@ -77,7 +100,13 @@ gender_filter = dcc.Dropdown(
         {'label': 'Female', 'value': 'F'}
     ],
     value=['M', 'F'],
-    multi=True)
+    multi=True,
+    style={"margin-top": "5px"})
+
+"""
+
+                                  
+                                  """
 
 overview = html.Div(children=[html.Img(src='assets/bfw-logo.png',
                                        style={
@@ -85,78 +114,113 @@ overview = html.Div(children=[html.Img(src='assets/bfw-logo.png',
                                        }),
                               html.Div(children=[
                                   html.Div(upload_data)
+                              ]),
+                              html.Div(children=[ethnicity_filter, gender_filter],
+                                       style={
+                                           "height": "25%",
+                                           "width": "90%",
+                                           "background-color": "#F3F4F9",
+                                           "margin": "auto",
+                                           "margin-top": "5px",
+                                           "margin-bottom": "5px",
+                                           "padding": "10px",
+                                       }),
+
+                              html.Div(
+                                  html.Button('Refresh Dashboard', id='refresh-button')
+                              ),
                               ],
-                                  style={
-                                      "height": "25%",
-                                      "width": "90%",
-                                      "background-color": "#F3F4F9",
-                                      "margin": "auto",
-                                      "margin-top": "5px",
-                                      "margin-bottom": "5px",
-                                      "padding": "10px",
-                                  }),
-                              html.Div(ethnicity_filter, style={
-                                  "width": "90%",
-                                  "margin": "auto",
-                                  "margin-top": "5px",
-                                  "margin-bottom": "5px"
-                              }),
-                              html.Div(gender_filter, style={
-                                  "width": "90%",
-                                  "margin": "auto",
-                                  "margin-top": "5px",
-                                  "margin-bottom": "5px"
-                              })
-                              ],
-                    style={"height": "400px",
+                    style={"height": "450px",
                            "backgroundColor": "white",
                            "padding": "5px",
                            "border": "1px solid #f8f9fa",
                            "text-align": "center",
                            "margin-top": "1px"})
 
-header = dbc.NavbarSimple(
-    children=[
-        dbc.NavItem(dbc.NavLink("Dashboard", href="#")),
-        dbc.DropdownMenu(
-            children=[
-                dbc.DropdownMenuItem("Additional Resources", header=True),
-                dbc.DropdownMenuItem("README", href="#"),
-                dbc.DropdownMenuItem("Report", href="#"),
-                dbc.DropdownMenuItem("GitHub", href="#")
-            ],
-            nav=True,
-            in_navbar=True,
-            label="More",
-        ),
-    ],
-    brand="'Fairness' Evaluation for Facial Recognition Technology",
-    brand_href="#",
-    color="primary",
-    dark=True
-)
+# TABS
 
 data_tabs = html.Div([
     dcc.Tabs(id="data-tabs", value='tab-frame', children=[
-        dcc.Tab(label='Data Table', value='tab-frame'),
-        dcc.Tab(label='Data Summary', value='tab-summary'),
+        dcc.Tab(label='Data Table', value='tab-frame', id='tab-frame'),
+        dcc.Tab(label='Data Summary', value='tab-summary', id='tab-summary'),
     ], style={"margin-top": "5px"}),
+    dbc.Tooltip(
+        "Preview of uploaded dataset",
+        target="tab-frame",
+        placement="top",
+        delay={"show": "500"}
+    ),
+    dbc.Tooltip(
+        "Summary statistics of uploaded dataset",
+        target="tab-summary",
+        placement="top",
+        delay={"show": "500"}
+    ),
     html.Div(id='tabs-content-data')])
 
 error_tabs = html.Div([
     dcc.Tabs(id="error-tabs", value='tab-error', children=[
-        dcc.Tab(label='Confusion Matrix', value='tab-matrix'),
-        dcc.Tab(label='DET Curves', value='tab-det'),
+        dcc.Tab(label='Confusion Matrix', value='tab-matrix', id='tab-matrix'),
+        dcc.Tab(label='DET Curves', value='tab-det', id='tab-det'),
     ]),
+    dbc.Tooltip(
+        "Explain what confusion matrix is",
+        target="tab-matrix",
+        placement="top",
+        delay={"show": "500"}
+    ),
+    dbc.Tooltip(
+        "Explain what DET Curve is",
+        target="tab-det",
+        placement="top",
+        delay={"show": "500"}
+    ),
     html.Div(id='tabs-content-error',
              style={"width": "100%"})
 ])
 
 dist_tabs = html.Div([
     dcc.Tabs(id="dist-tabs", value='tab-graphs', children=[
-        dcc.Tab(label='Violin Plots', value='tab-violin'),
-        dcc.Tab(label='Box Plots', value='tab-box'),
-        dcc.Tab(label='SDM Curves', value='tab-sdm'),
+        dcc.Tab(label='Violin Plots', value='tab-violin', id='tab-violin'),
+        dcc.Tab(label='Box Plots', value='tab-box', id='tab-box'),
+        dcc.Tab(label='SDM Curves', value='tab-sdm', id='tab-sdm'),
     ]),
+    dbc.Tooltip(
+        "Explain what violin plot is",
+        target="tab-violin",
+        placement="top",
+        delay={"show": "500"}
+    ),
+    dbc.Tooltip(
+        "Explain what box plot is",
+        target="tab-box",
+        placement="top",
+        delay={"show": "500"}
+    ),
+    dbc.Tooltip(
+        "Explain what SDM curve is",
+        target="tab-sdm",
+        placement="top",
+        delay={"show": "500"}
+    ),
     html.Div(id='tabs-content-dist')
 ])
+
+# SHOW/HIDE ELEMENTS
+
+hidden_dist = html.Div(
+    children=[
+        html.Details(
+            [html.Summary("Score Distribution Plots"),
+             dist_tabs]
+        )
+    ], style={"width": "100%"})
+
+hidden_error = html.Div(
+    children=[
+        html.Details(
+            [html.Summary("Error Evaluation Plots"),
+             error_tabs]
+        ),
+    ],
+    style={"width": "100%"})

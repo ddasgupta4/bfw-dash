@@ -2,4 +2,3 @@ data
 .DS_STORE
 cache-directory
 __pycache__/
-test.py

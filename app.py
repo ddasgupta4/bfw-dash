@@ -61,25 +61,9 @@ overview = layout.overview
 
 data_tabs = layout.data_tabs
 
-error_tabs = layout.error_tabs
+hidden_error = layout.hidden_error
 
-dist_tabs = layout.dist_tabs
-
-hidden_error = html.Div(
-    children=[
-        html.Details(
-            [html.Summary("Error Plots"),
-             error_tabs]
-        )
-    ], style={"width": "100%"})
-
-hidden_dist = html.Div(
-    children=[
-        html.Details(
-            [html.Summary("Score Distribution Plots"),
-             dist_tabs]
-        )
-    ], style={"width": "100%"})
+hidden_dist = layout.hidden_dist
 
 # APP LAYOUT
 app.layout = html.Div(
@@ -114,8 +98,6 @@ def parse_table(contents):
     If no data is uploaded the default dataset is read
     '''
 
-    # print('Calling parse_table')
-
     default_study_data = "data/bfw-v0.1.5-datatable.csv"
 
     if contents is None:
@@ -127,7 +109,6 @@ def parse_table(contents):
 
     try:
         study_data = viz.relabel(study_data)
-        # print("Relabeled data")
     except Exception as e:
         print("Invalid data format")
 
@@ -136,9 +117,9 @@ def parse_table(contents):
 
 @cache.memoize()
 def write_dataframe(df, filename):
-    # print('Calling write_dataframe')
+    print('Calling write_dataframe')
     file = os.path.join(filecache_dir, filename)
-    # print('New cache located at', file)
+    print('New cache located at', file)
     df.to_pickle(file)
 
 
@@ -150,8 +131,10 @@ def read_dataframe(filename, gender=['M', 'F'], ethnicity=['A', 'B', 'I', 'W']):
         i.e graphs, data table
     '''
 
-    # print('Calling read_dataframe')
     file = os.path.join(filecache_dir, filename)
+
+    print("Reading file:", file)
+
     df = pd.read_pickle(file)
     df = df[df.e1.isin(ethnicity)]
     df = df[df.g1.isin(gender)]
@@ -172,15 +155,13 @@ def update_table(contents, filename, last_modified):
 
     Need to adjust this so if the user uploads a new file it recognizes and gets a new timestamp or overwrites
     """
-    # print('Calling update table')
-    # print('Read file', filename)
 
     if last_modified is None:
         filename = "bfw-v0.1.5-datatable.csv"
 
     file = now + os.path.splitext(filename)[0]
 
-    # print('Uploaded file', file)
+    print('Uploaded file:', file)
 
     try:
         # Checks to see if file has already been uploaded
@@ -192,14 +173,19 @@ def update_table(contents, filename, last_modified):
     return filename
 
 
+# 'refresh-button'
+
 @app.callback(
     Output('data-table-div', 'children'),
     [Input('gender-filter', 'value'),
      Input('ethnicity-filter', 'value'),
-     Input('column-filter', 'value')])
-def print_table(gender, ethnicity, columns):
-    cache_files = glob.glob(filecache_dir + '/*')  # gets all files from cache-directory
+     Input('column-filter', 'value')],
+    [State('upload-data', 'last_modified')])
+def print_table(gender, ethnicity, columns, last_modified):
+    cache_files = glob.glob(filecache_dir + '/*')  # get a list all files from cache-directory
     latest_file = max(cache_files, key=os.path.getctime)  # calls most recent cache to be read
+
+    print("Data Table Data:", latest_file)
 
     df = read_dataframe(latest_file, gender, ethnicity)
     df['score'] = pd.Series(["{0:.2f}%".format(val * 100) for val in df['score']], index=df.index)
@@ -231,10 +217,13 @@ def print_table(gender, ethnicity, columns):
 @app.callback(Output('tabs-content-dist', 'children'),
               [Input('dist-tabs', 'value'),
                Input('gender-filter', 'value'),
-               Input('ethnicity-filter', 'value')])
-def render_dist_tabs(tab, gender, ethnicity):
+               Input('ethnicity-filter', 'value'),
+               Input('upload-data', 'last_modified')])
+def render_dist_tabs(tab, gender, ethnicity, n_clicks):
     cache_files = glob.glob(filecache_dir + '/*')  # gets all files from cache-directory
     latest_file = max(cache_files, key=os.path.getctime)  # calls most recent cache to be read
+
+    print("Distribution Plots Data:", latest_file)
 
     df = read_dataframe(latest_file, gender, ethnicity)
 
@@ -276,4 +265,3 @@ def render_error_tabs(tab, session_id):
 if __name__ == '__main__':
     app.run_server(debug=True, port=5050)
     print('session ended')
-    cache.clear()
