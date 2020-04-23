@@ -17,17 +17,17 @@ Python executable from the virtualenv.
 - [x] Move data table section to take up less space
 - [x] Fix callback error
 - [x] Configure global filters for data
-    -[ ] Add more filters (age, subgroup, etc.)
-    -[ ] Fix filter style
+    - Add more filters (age, subgroup, etc.)
+    - Fix filter style
 - [ ] Create more visualizations
-    -[ ] ROC Curve
-    -[ ] Summary table
-    -[ ] Confusion Matrix
-    -[ ] DET Curves 
-- [ ] Make format of SDM curves consistent with Violin and Box
+    - ROC Curve
+    - Summary table
+    - Confusion Matrix
+    - DET Curves 
+    - SDM
 - [ ] Make all tabs/callbacks trigger after upload data
     - Right now uploading new data works, but the datatable/graphs don't update unless they're clicked
-- [ ] Add instructions, github, report to "more" in header
+- [x] Add instructions, github, report to "more" in header
 - [ ] Add warning/error message when data is invalid
 - [ ] Add more styling to CSS to avoid inline styling in app.py
     - Reduce clutter and increase readability
