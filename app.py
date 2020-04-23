@@ -40,8 +40,6 @@ default_study_data = "data/bfw-v0.1.5-datatable.csv"
 cache = Cache(app.server, config={
     'CACHE_TYPE': 'simple',
     'CACHE_DIR': 'cache-directory',
-    # should be equal to maximum number of users on the app at a single time
-    # higher numbers will store more data in the filesystem / redis cache
     'CACHE_THRESHOLD': 5
 })
 
@@ -75,12 +73,12 @@ app.layout = html.Div(
                      html.Div(children=[
                          overview,
                          data_tabs],
-                         style={"width": "25%",
+                         style={"width": "30%",
                                 "padding": "5px"}),
                      html.Div(children=[
                          hidden_dist,
                          hidden_error],
-                         style={"width": "75%",
+                         style={"width": "70%",
                                 "padding": "5px"}
                      )],
                  style={"margin": "auto"}),
@@ -98,14 +96,9 @@ def parse_table(contents):
     If no data is uploaded the default dataset is read
     '''
 
-    default_study_data = "data/bfw-v0.1.5-datatable.csv"
-
-    if contents is None:
-        study_data = pd.read_csv(default_study_data)
-    else:
-        content_type, content_string = contents.split(",")
-        decoded = base64.b64decode(content_string)
-        study_data = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
+    content_type, content_string = contents.split(",")
+    decoded = base64.b64decode(content_string)
+    study_data = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
 
     try:
         study_data = viz.relabel(study_data)
@@ -130,14 +123,14 @@ def read_dataframe(filename, gender=['M', 'F'], ethnicity=['A', 'B', 'I', 'W']):
     This function is called every time the data is read
         i.e graphs, data table
     '''
-
     file = os.path.join(filecache_dir, filename)
-
-    # print("Reading file:", file)
-
     df = pd.read_pickle(file)
-    df = df[df.e1.isin(ethnicity)]
-    df = df[df.g1.isin(gender)]
+
+    # if statement prevents error when user deselects all options
+    if len(ethnicity) > 0:
+        df = df[df.e1.isin(ethnicity)]
+    if len(gender) > 0:
+        df = df[df.g1.isin(gender)]
     return df
 
 
@@ -156,7 +149,7 @@ def update_table(contents, filename, last_modified):
     Need to adjust this so if the user uploads a new file it recognizes and gets a new timestamp or overwrites
     """
 
-    if last_modified is None:  # initializes dashboard with default data if it has just been opened
+    if contents is None:  # initializes dashboard with default data if it has just been opened
         file = "default"
         filename = "bfw-v0.1.5-datatable.csv"
     else:
@@ -180,11 +173,12 @@ def update_table(contents, filename, last_modified):
     Output('data-table-div', 'children'),
     [Input('gender-filter', 'value'),
      Input('ethnicity-filter', 'value'),
+     Input('score-filter', 'value'),
      Input('column-filter', 'value'),
      Input('upload-data', 'contents')],
     [State('upload-data', 'last_modified')])
-def print_table(gender, ethnicity, columns, contents, last_modified):
-    if last_modified is None:
+def print_table(gender, ethnicity, score, columns, contents, last_modified):
+    if contents is None:
         file = "default"
     else:
         cache_files = glob.glob(filecache_dir + '/*')  # gets all files from cache-directory
@@ -193,7 +187,7 @@ def print_table(gender, ethnicity, columns, contents, last_modified):
     print("Data Table Data:", file)
 
     df = read_dataframe(file, gender, ethnicity)
-    df['score'] = pd.Series(["{0:.2f}%".format(val * 100) for val in df['score']], index=df.index)
+    df['score'] = pd.Series(["{0:.2f}%".format(val * 100) for val in df[score]], index=df.index)
     df = df.sample(50, random_state=1)[columns]
 
     data_table = dash_table.DataTable(
@@ -223,10 +217,11 @@ def print_table(gender, ethnicity, columns, contents, last_modified):
               [Input('dist-tabs', 'value'),
                Input('gender-filter', 'value'),
                Input('ethnicity-filter', 'value'),
+               Input('score-filter', 'value'),
                Input('upload-data', 'contents')],
               [State('upload-data', 'last_modified')])
-def render_dist_tabs(tab, gender, ethnicity, contents, last_modified):
-    if last_modified is None:
+def render_dist_tabs(tab, gender, ethnicity, score, contents, last_modified):
+    if contents is None:
         file = "default"
     else:
         cache_files = glob.glob(filecache_dir + '/*')  # gets all files from cache-directory
@@ -238,15 +233,15 @@ def render_dist_tabs(tab, gender, ethnicity, contents, last_modified):
 
     if tab == 'tab-violin':
         return html.Div([
-            dcc.Graph(figure=viz.violin_plot(df))
+            dcc.Graph(figure=viz.violin_plot(df, score))
         ])
     elif tab == 'tab-box':
         return html.Div([
-            dcc.Graph(figure=viz.box_plot(df))
+            dcc.Graph(figure=viz.box_plot(df, score))
         ])
     elif tab == 'tab-sdm':
         return html.Div([
-            dcc.Graph(figure=viz.sdm_curve(df))
+            dcc.Graph(figure=viz.sdm_curve(df, score))
         ])
 
 
@@ -262,13 +257,38 @@ def render_data_tabs(tab, session_id):
 
 
 @app.callback(Output('tabs-content-error', 'children'),
-              [Input('error-tabs', 'value')],
-              [State('session-id', 'children')])
-def render_error_tabs(tab, session_id):
+              [Input('error-tabs', 'value'),
+               Input('gender-filter', 'value'),
+               Input('ethnicity-filter', 'value'),
+               Input('score-filter', 'value'),
+               Input('upload-data', 'contents')],
+              [State('upload-data', 'last_modified')])
+def render_error_tabs(tab, gender, ethnicity, score, contents, last_modified):
+    if contents is None:
+        file = "default"
+    else:
+        cache_files = glob.glob(filecache_dir + '/*')  # gets all files from cache-directory
+        file = max(cache_files, key=os.path.getctime)  # calls most recent cache to be read
+
+    print("Error Plots Data:", file)
+
+    df = read_dataframe(file, gender, ethnicity)
+
     if tab == 'tab-matrix':
         return html.Div()
     elif tab == 'tab-det':
-        return html.Div([dcc.Graph(figure=viz.mock_det())])
+        return html.Div(
+            [
+                html.Div([
+                    dcc.Graph(figure=viz.det_ethnicity(df, score),
+                              style={"display": "inline-block", "width": "50%"}),
+                    dcc.Graph(figure=viz.det_gender(df, score),
+                              style={"display": "inline-block", "width": "50%"})
+                ]),
+                dcc.Graph(figure=viz.det_subgroup(df, score))
+            ], style={"margin": "0px",
+                      "padding": "0px"}
+        )
 
 
 if __name__ == '__main__':

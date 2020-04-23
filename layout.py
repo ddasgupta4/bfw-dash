@@ -91,7 +91,8 @@ ethnicity_filter = dcc.Dropdown(
     ],
     value=['A', 'B', 'I', 'W'],
     multi=True,
-    style={"margin-top": "5px"})
+    style={"margin-bottom": "5px",
+           "height": "20%"})
 
 gender_filter = dcc.Dropdown(
     id="gender-filter",
@@ -101,36 +102,53 @@ gender_filter = dcc.Dropdown(
     ],
     value=['M', 'F'],
     multi=True,
-    style={"margin-top": "5px"})
+    style={"margin-bottom": "5px",
+           "height": "20%"})
 
-"""
+score_filter = dcc.Dropdown(
+    id="score-filter",
+    options=[
+        {'label': 'senet50', 'value': 'senet50'},
+        {'label': 'resnet50', 'value': 'resnet50'},
+        {'label': 'vgg16', 'value': 'vgg16'}
+    ],
+    value='senet50',
+    multi=False,
+    style={"margin-bottom": "5px",
+           "height": "20%"})
 
-                                  
-                                  """
+ethnicity_label = html.Div("Ethnicity", style={"text-align": "left"})
+
+gender_label = html.Div("Gender", style={"text-align": "left"})
+
+score_label = html.Div("Scoring Metric", style={"text-align": "left"})
 
 overview = html.Div(children=[html.Img(src='assets/bfw-logo.png',
                                        style={
-                                           "width": "75%"
+                                           "height": "35%"
                                        }),
                               html.Div(children=[
                                   html.Div(upload_data)
                               ]),
-                              html.Div(children=[ethnicity_filter, gender_filter],
-                                       style={
-                                           "height": "25%",
-                                           "width": "90%",
-                                           "background-color": "#F3F4F9",
-                                           "margin": "auto",
-                                           "margin-top": "5px",
-                                           "margin-bottom": "5px",
-                                           "padding": "10px",
-                                       }),
-
-                              html.Div(
-                                  html.Button('Refresh Dashboard', id='refresh-button')
-                              ),
+                              html.Div(children=[
+                                  ethnicity_label,
+                                  ethnicity_filter,
+                                  gender_label,
+                                  gender_filter,
+                                  score_label,
+                                  score_filter
                               ],
-                    style={"height": "450px",
+                                  style={
+                                      "height": "45%",
+                                      "width": "90%",
+                                      "background-color": "#F3F4F9",
+                                      "margin": "auto",
+                                      "margin-top": "5px",
+                                      "margin-bottom": "5px",
+                                      "padding": "10px",
+                                  }),
+                              ],
+                    style={"height": "500px",
                            "backgroundColor": "white",
                            "padding": "5px",
                            "border": "1px solid #f8f9fa",
@@ -161,7 +179,8 @@ data_tabs = html.Div([
 error_tabs = html.Div([
     dcc.Tabs(id="error-tabs", value='tab-error', children=[
         dcc.Tab(label='Confusion Matrix', value='tab-matrix', id='tab-matrix'),
-        dcc.Tab(label='DET Curves', value='tab-det', id='tab-det'),
+        dcc.Tab(label='Detection Error Tradeoff (DET) Curves', value='tab-det', id='tab-det'),
+        dcc.Tab(label='ROC Curves', value='tab-roc', id='tab-roc'),
     ]),
     dbc.Tooltip(
         "Explain what confusion matrix is",
@@ -172,6 +191,12 @@ error_tabs = html.Div([
     dbc.Tooltip(
         "Explain what DET Curve is",
         target="tab-det",
+        placement="top",
+        delay={"show": "500"}
+    ),
+    dbc.Tooltip(
+        "Explain what ROC Curve is",
+        target="tab-roc",
         placement="top",
         delay={"show": "500"}
     ),
