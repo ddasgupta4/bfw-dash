@@ -11,7 +11,7 @@ Facial recognition (FR) technology is an advanced form of biometric security tha
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org) 
 
 
-![Dashboard UI](assets/DashBoard.png)
+![Dashboard UI](Images/DashBoard.png)
 
 
 ---
