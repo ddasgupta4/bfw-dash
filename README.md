@@ -1,6 +1,3 @@
-
-***INSERT GRAPHIC HERE (include hyperlink in image)***
-
 # Balanced Faces in the Wild Dashboard
 
 
@@ -19,9 +16,8 @@
 ## Table of Contents 
 
 - [Installation](#installation)
-- [Features](#features)
-- [Contributing](#contributing)
-- [Team](#team)
+- [Usage](#usage)
+- [Documentation](#documentation)
 - [License](#license)
 
 ---
@@ -57,7 +53,6 @@ python app.py
 - This dashboard was produced as an extension of the work shared at https://github.com/visionjo/facerec-bias-bfw
 
 ---
-
 
 ## License
 
