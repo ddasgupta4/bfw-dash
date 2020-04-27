@@ -14,21 +14,9 @@
 ![Dashboard UI](assets/dashboard-ui.png)
 
 
-
-> GIF Tools
-
-- Use <a href="http://recordit.co/" target="_blank">**Recordit**</a> to create quicks screencasts of your desktop and export them as `GIF`s.
-- For terminal sessions, there's <a href="https://github.com/chjj/ttystudio" target="_blank">**ttystudio**</a> which also supports exporting `GIF`s.
-
-**Recordit**
-
-![Recordit GIF](http://g.recordit.co/iLN6A0vSD8.gif)
-
 ---
 
-## Table of Contents (Optional)
-
-> If your `README` has a lot of info, section headers might be nice.
+## Table of Contents 
 
 - [Installation](#installation)
 - [Features](#features)
