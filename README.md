@@ -49,9 +49,9 @@ python app.py
 
 
 ## Documentation
-- The research paper supporting this dashboard can be found <a href="assets/A Fairness Tool for Bias in FR Updated.pdf">here</a>.
+- The research paper supporting this dashboard can be found <a href="assets/A Fairness Tool for Bias in FR Updated.pdf"  target="_blank">here</a>.
 - This dashboard was presented at Northeastern University's RISE 2020.
-    - The poster presented can be found <a href="assets/RISE Poster.pdf">here</a>.
+    - The poster presented can be found <a href="assets/RISE Poster.pdf"  target="_blank">here</a>.
     - A recording of our presentation can be found <a href="https://web.microsoftstream.com/video/849f7262-b45e-41d7-9dd4-91a02dfe18cd" target="_blank">here</a>. 
 - Going into more detail on code and technologies used
 - This dashboard was produced as an extension of the work shared at https://github.com/visionjo/facerec-bias-bfw
@@ -64,27 +64,3 @@ python app.py
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
 
 - **[MIT license](http://opensource.org/licenses/mit-license.php)**
-
-## TODO
-
-Dylan
-- [x] Fix layout to emphasize graphs
-- [x] Move data table section to take up less space
-- [x] Fix callback error
-- [x] Configure global filters for data
-    - Add more filters (age, subgroup, etc.)
-    - Fix filter style
-- [x] Make all tabs/callbacks trigger after upload data
-    - Right now uploading new data works, but the datatable/graphs don't update unless they're clicked
-- [x] Add instructions, github, report to "more" in header
-- [ ] Add warning/error message when data is invalid
-- [ ] Add more styling to CSS to avoid inline styling in app.py
-    - Reduce clutter and increase readability
-    
-William & Alice
-- [ ] Create more visualizations
-    - ROC Curve
-    - Summary table
-    - Confusion Matrix
-    - DET Curves 
-    - SDM
