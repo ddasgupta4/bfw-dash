@@ -47,7 +47,7 @@ snowballstemmer==2.0.0
 TBB==0.1
 typed-ast==1.4.1
 typing-extensions==3.7.4.2
-ujson==1.35
+ujson==5.4.0
 virtualenv==20.0.10
 Werkzeug==1.0.1
 wget==3.2
